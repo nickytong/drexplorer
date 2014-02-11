@@ -1,0 +1,15 @@
+exportMethods(
+    "lines",
+    "plot",
+    "predict" 
+)
+exportClasses(
+     "drFit"
+)
+export(
+	'NewmanTest', 
+	'drOutlier', 
+	'drModels', 
+	'drFit',
+	'computeIC'	
+)

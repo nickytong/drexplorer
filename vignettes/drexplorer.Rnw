@@ -1,0 +1,172 @@
+%\VignetteIndexEntry{drexplorer Vignette}
+%\VignetteDepends{drc, DoseFinding, methods}
+%\VignetteKeywords{drexplorer}
+%\VignettePackage{drexplorer}
+
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{natbib}
+
+\pagestyle{myheadings}
+
+\setlength{\topmargin}{0in}
+\setlength{\textheight}{8in}
+\setlength{\textwidth}{6.5in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+
+\title{Dose-response Explorer: Exploring different models and how outliers affect model fitting} 
+\author{Kevin R Coombes and Pan Tong}
+\date{\today}
+
+\usepackage{Sweave}
+\begin{document}
+
+\SweaveOpts{prefix.string=drexplorer}
+
+\maketitle
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+<<echo=FALSE>>=
+options(width=80)
+options(continue=' ')
+@ 
+
+\section{Introduction}
+There is a great variety of models developed for dose-response data, many of which have been implemented in 
+ the \texttt{drc} and \texttt{DoseFinding} packages. \texttt{drexplorer} combines both packages to aid the user to visually examine and compare how existing models
+ perform on the data. Another important feature for \texttt{drexplorer} is to allow the user to identify outlier measurements and visually examine
+ how these outliers affect the fitted model. 
+
+ The main entry for \texttt{drexplorer} is the drFit() function and computeIC() function. drFit() fits a model.
+Outlier detection is also embedded into drFit(). Once a model is fitted, computeIC() computes IC values at specified percentiles.
+
+\section{Outlier identification}
+This package implements the method by Newman, D. The test statistic q=w/s where w is the range of the data and s is sample standard deviation
+estimated from controls. The null distribution for q has been derived and 1\% and 5\% quantiles have been given in the paper.
+
+We implement this procedure. In particular, NewmanTest() returns a logic vector specifying whether the observations are outliers.
+Usually, drug-response data contains multiple doses. Therefore, we write a wrapper drOutlier() that compute the result for all doses each dose at a time.
+
+We use the \texttt{ryegrass} data from \texttt{drc} package for illustration purpose.
+
+First, we load the \texttt{drexplorer} package and attach the \texttt{ryegrass} data.
+<<loadLibrary>>=
+library(drexplorer)
+data(ryegrass)
+@ 
+
+At dose=3.75 and significance level 0.05, we find there is one outlier identified:
+<<>>=
+dose <- ryegrass[, 2]
+response <- ryegrass[, 1]
+## potential outlier at dose 3.75
+NewmanTest(ref=response[dose==0], obs=response[dose==3.75], alpha=0.05)
+@
+
+We also examine all dose levels and find no further outliers:
+
+<<>>=
+drOutlier(drMat=ryegrass[, c(2, 1)], alpha=0.05)
+@
+
+
+\section{Fit dose-response models}
+Below we show how to fit a dose-response model. The fitDRC() function is a wrapper to the \texttt{drc} and \texttt{DoseFinding} packages.
+Therefore, all models implemented by either package can be fitted. A model is specified by a modelName and package name to be passed to this function.
+
+Outliers can be identified and removed from model fitting by specifying the parameter alpha (either at significance level of 0.01 or 0.05). To disable outlier
+identification, set alpha=1.
+
+To remove controls (responses at dose=0) during model fitting, we can set fitCtr=FALSE.
+
+Note that the responses are scaled by mean response at dose=0 before model fitting. 
+
+Below we fit a sigmaEmax model. We set alpha=1 to disable outlier removal and fitCtr=FALSE to exclude controls.
+<<>>=
+fit_sigEmax_alpha1 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=1, fitCtr=FALSE)
+@
+
+The result is slightly different when outliers passing significance level of 0.05 is removed.
+<<>>=
+fit_sigEmax_alpha_o5 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=0.05, fitCtr=FALSE)
+fit_sigEmax_alpha1@fit
+fit_sigEmax_alpha_o5@fit
+@
+
+\section{Predict response}
+One a model is fitted, it can be used to make predictions.
+
+Below we make predictions at the observed dose levels with a previously fitted model. Since the responses are scaled by mean response at dose=0 in model fitting,
+the predicted responses are also scaled by the mean response from controls. By default, the predict function makes predictions at observed doses.
+
+<<>>=
+y <- predict(fit_sigEmax_alpha_o5)
+y
+@
+
+\section{Obtain IC values}
+We implement two approaches for IC value computation. One is to interpolate the observed dosages and try to use the dose that has the predicted response closest to the 
+specified percentile of IC value. The second approach is to use root finding by setting the fitted model to equal to the specified percentile. In most cases, the result
+are similar. However, the latter approach may give IC50 values beyond observed dosages and sometimes not robust. The computeIC() function implements both approaches. By setting
+interpolation=TRUE (the default value) in the computeIC() function, the interpolation approach will be selected.   
+
+Computing IC values at different quantiles is also easy. Similar to the fitDRC() function, different models as well as other options (alpha and fitCtr) 
+can be specified in estimating IC value. 
+
+Below we estimate IC50 at different percentiles with the sigmoid Emax model with outlier removal (alpha=0.05) fitted previously. We see that 
+estimates from interpolation and prediction by the model are quite similar. 
+<<>>=
+computeIC(fit_sigEmax_alpha_o5, percent=seq(0, 1, by=0.1), log.d=FALSE, interpolation=TRUE)
+computeIC(fit_sigEmax_alpha_o5, percent=seq(0, 1, by=0.1), log.d=FALSE, interpolation=FALSE)
+@
+
+\section{Comparing multiple dose-response curves}
+We provide S4 generic functions plot and lines for fitted model. As a result, it is easy to compare different models 
+to graphically examine outliers and multiple dose-response curves.
+
+Outliers at significance levels 0.01 and 0.05 are indicated by different colors and symbols. Below we show the LL.3, LL.3u and sigEmax curves in this example
+corresponding to the three-parameter log-logistic model with lower limit 0, three-parameter log-logistic with upper limit 1 and the sigmoid Emax model.
+
+<<fig=TRUE>>=
+fit.LL.3 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "LL.3", alpha=0.05, fitCtr=FALSE)
+fit.LL.3u <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "LL.3u", alpha=0.05, fitCtr=FALSE)
+fit.sigEmax <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=0.05, fitCtr=FALSE)
+###
+plot(fit.LL.3, main='', col=4, lwd=2)
+lines(fit.LL.3u, col=5, lwd=2)
+lines(fit.sigEmax, col=6, lwd=2)
+legend("bottomleft", c('LL.3', 'LL.3u', 'sigEmax'), col=4:6, lwd=3)
+@
+
+With these many models fitted, which one should be preferred? One way is to look at the Residual Standard Error (RSE) as below.
+We see that the LL.3u model is best by the RSE criteria.
+
+<<>>=
+sapply(list(fit.LL.3, fit.LL.3u, fit.sigEmax), function(x) x@info$RSE)
+@
+
+We also compare the curve using sigEmax model with and without outlier identification.
+
+<<fig=TRUE>>=
+# no outlier excluded
+fit.sigEmax0 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=1, fitCtr=FALSE)
+###
+plot(fit.sigEmax0, main='sigEmax model', col=7, lwd=2)
+lines(fit.sigEmax, col=6, lwd=2)
+legend("bottomleft", c('alpha=0.05', 'ignored'), col=c(6, 7), lwd=3)
+@
+
+
+\section{File Location and Session Info}
+<<sessionInfo>>=
+getwd()
+sessionInfo()
+@ 
+
+\end{document}

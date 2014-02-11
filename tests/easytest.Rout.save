@@ -1,0 +1,105 @@
+
+R version 2.15.1 (2012-06-22) -- "Roasted Marshmallows"
+Copyright (C) 2012 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-unknown-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(drexplorer)
+Loading required package: drc
+Loading required package: alr3
+Loading required package: car
+Loading required package: MASS
+Loading required package: nnet
+
+Attaching package: 'alr3'
+
+The following object(s) are masked from 'package:MASS':
+
+    forbes
+
+Loading required package: gtools
+
+Attaching package: 'gtools'
+
+The following object(s) are masked from 'package:car':
+
+    logit
+
+Loading required package: lattice
+Loading required package: magic
+Loading required package: abind
+Loading required package: nlme
+Loading required package: plotrix
+Loading required package: stats4
+
+'drc' has been loaded.
+
+Please cite R and 'drc' if used for a publication,
+for references type 'citation()' and 'citation('drc')'.
+
+
+Attaching package: 'drc'
+
+The following object(s) are masked from 'package:stats':
+
+    gaussian, getInitial
+
+Loading required package: DoseFinding
+Loading required package: mvtnorm
+
+Attaching package: 'DoseFinding'
+
+The following object(s) are masked from 'package:drc':
+
+    ED, logistic
+
+> data(ryegrass)
+> #(1) identify outliers
+> dose <- ryegrass[, 2]
+> response <- ryegrass[, 1]
+> NewmanTest(ref=response[dose==0], obs=response[dose==3.75], alpha=0.05)
+[1] FALSE FALSE  TRUE
+> #
+> drOutlier(drMat=ryegrass[, c(2, 1)], alpha=0.05)
+ [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+[13] FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+> 
+> #(2) fit 
+> fit.sigEmax <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=0.05, fitCtr=FALSE)
+Message: Need bounds in "bnds" for nonlinear models, using default bounds from "defBnds".
+> 
+> #(3) predict
+> predict(fit.sigEmax)
+         1          2          3          4          5          6          7 
+1.01741006 1.01741006 1.01741006 1.01741006 1.01741006 1.01741006 0.99417866 
+         8          9         10         11         12         13         14 
+0.99417866 0.99417866 0.82052868 0.82052868 0.82052868 0.32622604 0.32622604 
+        15         16         17         18         19         20         21 
+0.32622604 0.10453581 0.10453581 0.10453581 0.07560708 0.07560708 0.07560708 
+        22         23         24 
+0.07274016 0.07274016 0.07274016 
+> 
+> 
+> #(4) plot functions
+> fit.sigEmax0 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=1, fitCtr=FALSE)
+Message: Need bounds in "bnds" for nonlinear models, using default bounds from "defBnds".
+> ###
+> plot(fit.sigEmax0, main='sigEmax model', col=7, lwd=2)
+> lines(fit.sigEmax, col=6, lwd=2)
+> legend("bottomleft", c('alpha=0.05', 'ignored'), col=c(6, 7), lwd=3)
+> 
+> proc.time()
+   user  system elapsed 
+  0.775   0.064   1.018 

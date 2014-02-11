@@ -1,0 +1,51 @@
+\name{computeIC}
+\alias{computeIC}
+%- Also NEED an '\alias' for EACH other topic documented here.
+\title{
+Compute the IC values at specified percentiles
+}
+\description{
+This function uses rootfinding with fitted curve to compute IC values.
+}
+\usage{
+computeIC(drFit, percent=0.50, log.d=TRUE, interpolation=TRUE, niter=1001, lower, upper, ...) 
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{drFit}{
+A drFit object as returned by drFit() function.
+}
+  \item{percent}{
+the inhibition ratio to be searched against. A vector between 0 and 1.
+}
+  \item{log.d}{
+whether to return log10(dose) or the raw dose. Default is set to TRUE.
+}
+  \item{interpolation}{
+whether to use interpolation to estimate IC values. In this case, the computed IC values will be bound by the observed dosages.
+}
+  \item{niter}{
+number of equally spaced intervals during interpolation. Only used when interpolation=TRUE.
+}
+  \item{lower}{
+lower bound in root search. Default is min(c(0, min(dose))) where dose is the observed dose levels from drFit@originalDat.
+}
+  \item{upper}{
+upper bound in root search. Default is max(dose)*1e6 where dose is the observed dose levels from drFit@originalDat.
+}
+  \item{\dots}{
+other optimization parameters to be passed to uniroot().
+}
+}
+\value{
+A named vector giving the IC values at specified percentiles.
+}
+
+\seealso{
+\code{\link{NewmanTest}, \link{drOutlier}, \link{drModels}, \link{drFit}}
+}
+\examples{
+data(ryegrass) # use the ryegrass data from drc package
+fit.sigEmax <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=0.01, fitCtr=FALSE)
+computeIC(fit.sigEmax, percent=seq(0, 1, by=0.1), log.d=FALSE)		  
+}
