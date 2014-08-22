@@ -14,5 +14,5 @@ Description: There is a great variety of models developed for dose-response
     model.
 License: GPL (>= 2)
 LazyData: true
-Depends: drc, DoseFinding, methods, scales, RColorBrewer, stringr, plyr, fgui
+Depends: drc, DoseFinding, epiR, calibrate, methods, scales, RColorBrewer, stringr, plyr, fgui
 Packaged: 2014-02-21 18:50:56 UTC; ptong1
