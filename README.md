@@ -7,9 +7,14 @@ To run the app in your local R session:
     library(devtools)
     install_github("drexplorer", "nickytong")
     
-    #load in opencpu
-    library(opencpu)
-    opencpu$browse("/library/drexplorer/www")
+	# load the package
+	library(drexplorer)
+	
+	# pull out vignette
+	vignette('drexplorer')
 
-	# run with a public server from openCPU
-	browseURL("https://public.opencpu.org/ocpu/github/nickytong/drexplorer/www/")
+	# GUI for dose-response curve fitting
+	drexplorerGUI_1()
+	
+	# GUI for drug-drug interaction
+	drexplorerGUI_2()
