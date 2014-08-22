@@ -1,9 +1,17 @@
 drexplorer
 ==========
 
-To run the app in your local R session:
+The drexplorer R package is developed to facilitate the analysis of dose-response data. It can be used to:
+-- assess the reproducibility of replicates, 
+-- detect outlier data points
+-- fit different models
+-- select the best model
+-- estimate IC values at different percentiles
+-- evaluate drug-drug interactions
 
-    #install app
+Instructions for installation and usage:
+
+    #install package
     library(devtools)
     install_github("drexplorer", "nickytong")
     
