@@ -7,8 +7,17 @@ Show available dose-response models supported.
 This function shows available models to be passed to drFit function as modelName.
 }
 \usage{
-drModels()
+drModels(return=FALSE, verbose=TRUE)
 }
+\arguments{
+  \item{return}{
+whether to return the models in a list
+}
+  \item{verbose}{
+whether to print out the models
+}
+}
+
 \value{
 Following is the print out:
 

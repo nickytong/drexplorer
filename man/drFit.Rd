@@ -28,6 +28,12 @@ A logic vector specifying whether to include the control points into the model f
 \details{
 This is a wrapper to fit dose response models from drc and DoseFinding packages. 
 
+When fit the model, the response is internally scaled with mean response in control. Therefore, the fitted response is a ratio.
+In visualization, i.e. dose-response curve plotting, the dose is log10 transformed so that we can see the sigmoid curve.
+However, in computing IC50 and doing prediction, the dose is in original scale since the model is trained in the original scale of dose and scaled scale for response.
+When the user requires a log10 transformed dose, it is done after estimating dose in original scale!
+
+
 }
 \value{
 It returns a drFit S4 object.

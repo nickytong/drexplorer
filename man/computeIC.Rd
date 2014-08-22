@@ -8,7 +8,7 @@ Compute the IC values at specified percentiles
 This function uses rootfinding with fitted curve to compute IC values.
 }
 \usage{
-computeIC(drFit, percent=0.50, log.d=TRUE, interpolation=TRUE, niter=1001, lower, upper, ...) 
+computeIC(drFit, percent=0.50, log.d=TRUE, interpolation=TRUE, stepLen=NA, lower, upper, ...) 
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -24,8 +24,8 @@ whether to return log10(dose) or the raw dose. Default is set to TRUE.
   \item{interpolation}{
 whether to use interpolation to estimate IC values. In this case, the computed IC values will be bound by the observed dosages.
 }
-  \item{niter}{
-number of equally spaced intervals during interpolation. Only used when interpolation=TRUE.
+  \item{stepLen}{
+step length to construct equally spaced intervals during interpolation. Only used when interpolation=TRUE.
 }
   \item{lower}{
 lower bound in root search. Default is min(c(0, min(dose))) where dose is the observed dose levels from drFit@originalDat.

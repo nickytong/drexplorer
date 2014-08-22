@@ -1,0 +1,50 @@
+\name{CI.delta}
+\alias{CI.delta}
+\title{Estimate the interaction index as well as its confidence interval using delta method for fixed ratio design}
+\usage{
+  CI.delta(d1, e1, d2, e2, d12, e12, d2.d1, E,
+    alpha = 0.05)
+}
+\arguments{
+  \item{d1}{dose for drug 1 where drug 2 has dose equal to
+  0}
+
+  \item{e1}{corresponding scaled response for drug 1, must
+  between 0 and 1}
+
+  \item{d2}{dose for drug 2 where drug 1 has dose equal to
+  0}
+
+  \item{e2}{corresponding scaled response for drug 2, must
+  between 0 and 1}
+
+  \item{d12}{the sum of doses from drug 1 and drug 2 when
+  both drugs are administered}
+
+  \item{e12}{corresponding scaled response when both drugs
+  are administered}
+
+  \item{d2.d1}{the ratio of the ray design. This is the
+  fixed ratio of dose 2 divided by dose 1}
+
+  \item{E}{a vector of responses (between 0 and 1) where
+  IAI and confidence interval are to be computed from.}
+
+  \item{alpha}{significance level of confidence interval}
+}
+\value{
+  a data frame with columns IAI, IAI.low, IAI.up, E, dx1
+  (corresponding dose of drug 1), dx2 (corresponding dose
+  of drug 1), dx12 (corresponding dose of combined drug,
+  same as definition of d12)
+}
+\description{
+  this code is extracted from the source code distributed
+  at https://biostatistics.mdanderson.org/SoftwareDownload/
+  Two versions are included in the source code: CI_IIV2
+  2008.SSC and CI_IIV2.SSC At first we implement
+  CI_IIV2.SSC; this gives wider CI band; so we decide to
+  use CI_IIV2 2008.SSC. Further, CI_IIV2 2008.SSC has a
+  more recent date and thus most updated.
+}
+
