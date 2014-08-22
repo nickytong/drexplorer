@@ -2,12 +2,12 @@ drexplorer
 ==========
 
 The drexplorer R package is developed to facilitate the analysis of dose-response data. It can be used to:
--- assess the reproducibility of replicates, 
--- detect outlier data points
--- fit different models
--- select the best model
--- estimate IC values at different percentiles
--- evaluate drug-drug interactions
+* assess the reproducibility of replicates, 
+* detect outlier data points
+* fit different models
+* select the best model
+* estimate IC values at different percentiles
+* evaluate drug-drug interactions
 
 Instructions for installation and usage:
 
