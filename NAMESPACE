@@ -11,5 +11,18 @@ export(
 	'drOutlier', 
 	'drModels', 
 	'drFit',
-	'computeIC'	
+	'computeIC',
+    'recommendedModels',
+	'model.drc', 'model.DoseFinding'
 )
+export(datSplit)
+export(detect_ray_design)
+export(fitIAI)
+export(fit_median_efect)
+export(plotIAI)
+export(plotOneExp)
+export(fitOneExp)
+
+
+export(drexplorerGUI_1)
+export(drexplorerGUI_2)

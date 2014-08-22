@@ -1,0 +1,42 @@
+----------------------------------------------------------------
+drexplorer 0.9.7
+----------------------------------------------------------------
+(1) Some models cannot be fitted possibly because they have an different interface (i.e. require more parameters).
+We need to remove them based on the current interface to drc and DoseFinding package. Actually based on the drmodels() manual,
+these are the gradients, not the actual model! MM.2 and MM.3 are different in the sense that they are Michaelis-Menten models 
+that are used for modeling enzyme kinetic. 
+ 
+These removed models include:
+betaMod: it requires a scale parameter which we have no idea, hence not implemented
+MM.2: enzyme kinetic model
+MM.3: enzyme kinetic model
+emaxGrad: the is the gradient function
+sigEmaxGrad
+quadraticGrad
+betaModGrad
+linearGrad
+linlogGrad
+logisticGrad
+linIntGrad
+linInt
+
+(2) when newman test has no table to look up, throw an warning and return all FALSE (like alpha=1)
+(3) in plotting curves, the origianl grid might be too coarse giving a curve not smooth enough; now the step length adapts to the designed doses to solve this problem.
+(4) fix a bug in icByInterpolation() so that the interpolated IC will never exceed the observed maximum dose
+(5) in IC by prediction, NA was produced in a few occassions. This is due to the fact that the specified IC value is not achievable by the fitted model. 
+Now the updated version will return -30 or 30 to indicate over-sensitive or over-resistant in the IC value. 
+NOTE: it is not recommended to fit model including control data since this will make the data more difficult to fit and more models will fail due to numerical issue (deviate too much from
+the model assumption).
+(6) use data adaptive step length to construct grid in computeIC when using interpolation. This avoids identical IC values for different cell lines; it is also more precise, approximating
+the prediction value when in range of the observed dose.
+(7) when data contains NA, there are errors: Error in na.fail.default(data[, nams]) : missing values in object
+
+----------------------------------------------------------------
+drexplorer 0.9.6
+----------------------------------------------------------------
+added functionality to 
+(1) datSplit split a data into multiple experiments
+(2) fitOneExp fit one experiement
+(3) plotOneExp plot the dose-response curve
+
+
