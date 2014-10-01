@@ -76,8 +76,8 @@ opts_chunk$set(tidy=TRUE,tidy.opts=list(keep.blank.line=FALSE, width.cutoff=50),
 \maketitle
 
 \tableofcontents
-\listoffigures
-\listoftables
+%\listoffigures
+%\listoftables
 
 <<echo=FALSE>>=
 options(width=80)
@@ -316,29 +316,16 @@ plotCCC(fit_allPoss_1$CI$IAI, fit_allPoss_2$CI$IAI)
 @
 
 
-\section{File Location and Session Info}
-<<sessionInfo>>=
-getwd()
-sessionInfo()
-@ 
+\section{GUI Usage}
+GUI interface has been shipped with \Rpackage{drexplorer} which is built upon the \Rpackage{fgui}. After loading the \Rpackage{drexplorer} 
+package, typing $$\texttt{drexplorerGUI\_1()}$$ in the R console will bring out the GUI for fitting dose-response curves. 
+Similarly,  typing $$\texttt{drexplorerGUI\_2()}$$ will bring out the GUI for drug-drug interaction analysis. In both case, example
+data sets have been attached. 
 
-\begin{thebibliography}{1}
-\bibitem{lee2007interaction}
-Lee, J Jack and Kong, Maiying and Ayers, Gregory D and Lotan, Reuben
-\newblock Mapping and quantifying mammalian transcriptomes by rna-seq.
-\newblock {\em Journal of biopharmaceutical statistics}, 17(3):461--480, 2007.
-
-\bibitem{lee2009confidence}
-Lee, J Jack and Kong, Maiying
-\newblock Confidence intervals of interaction index for assessing multiple drug interaction.
-\newblock {\em Statistics in biopharmaceutical research}, 1(1):4--17, 2009.
-
-\bibitem{chou1984quantitative}
-Chou, Ting-Chao and Talalay, Paul
-\newblock Quantitative analysis of dose-effect relationships: the combined effects of multiple drugs or enzyme inhibitors.
-\newblock {\em Advances in enzyme regulation}, 22:27--55, 1984.
-
-\end{thebibliography}
+\section{Session Info}
+<<sessInfo, results='asis', echo=FALSE>>=
+toLatex(sessionInfo())
+@
 
 \bibliographystyle{unsrt}
 \bibliography{drexplorer}
