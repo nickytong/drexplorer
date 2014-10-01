@@ -8,6 +8,7 @@ detach("package:drexplorer", unload=TRUE)
 library(drexplorer)
 
 load_all('../drexplorer')
+load_all('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer')
 
 
 ##
@@ -72,6 +73,7 @@ NULL
 #' @return a list
 #' @export
 detect_ray_design <- function(d1, d2, e, tol=0.001, d2.d1.force=NA){
+	# Here d2.d1.force use ray design method to fix grid data. What is the rationale and how to justify it?
 	ind_eAbnorm <- e<0 | e>1
 	if(sum(ind_eAbnorm)>0) {
 		warning(sprintf('%d responses not in the range [0, 1]; truncated automatically', sum(ind_eAbnorm)))
@@ -98,7 +100,7 @@ detect_ray_design <- function(d1, d2, e, tol=0.001, d2.d1.force=NA){
 		# force d2.d1 as the specified ratio or the default
 		d2.d1 <- d2.d1.force
 	} else {
-		d2.d1 <- mean(ratio_d)
+		d2.d1 <- mean(ratio_d) # this is not necessary for fixed ratio design
 	}
 	list(drMat=data.frame(d1=d1, d2=d2, e=e), isRayDesign=isRayDesign, ind_eAbnorm=ind_eAbnorm,  
 		d1=d1[ind1], e1=e[ind1], d2=d2[ind2], e2=e[ind2], d12=d1[ind12]+d2[ind12], e12=e[ind12], ind12=ind12, d2.d1=d2.d1, d2.d1_avail=ratio_d, d2.d1.force=d2.d1.force)
@@ -110,8 +112,7 @@ detect_ray_design <- function(d1, d2, e, tol=0.001, d2.d1.force=NA){
 # fit median-effect model for 2-drug combination with a fixed ratio desgin
 #'
 #' notice that the median-effect model is a special case of the sigma Emax model;
-#' 3 linear models are fitted; fixed ratio thus is required
-#' mostly borrowed from chou8491.SSC; but also borrowed from CI_IIV2.SSC
+#' 3 linear models are fitted; fixed ratio thus is required.
 #'
 #' @param d1 dose for drug 1 
 #' @param d2 dose for drug 2
@@ -122,7 +123,9 @@ detect_ray_design <- function(d1, d2, e, tol=0.001, d2.d1.force=NA){
 #' @param base base of logarithm; disabled since the dose-response curve estimation also needs transformation
 #' @return a list
 #' @export
-#### todo: deal with all-possible combination case
+#### todo: deal with all-possible combination case -- it is not solved completely in Lee 2009 paper. 
+#### mostly borrowed from chou8491.SSC; but also borrowed from CI_IIV2.SSC
+
 fit_median_efect <- function(d1, d2, e, name1='Drug A', name2='Drug B', d2.d1, base=exp(1)){
 	dose1 <- d1; dose2 <- d2; fa <- e
 	#browser()
@@ -225,22 +228,44 @@ plot_median_effect <- function(medianEffect, type=c('medianEffect', 'doseRespons
 #' Estimate the interaction index as well as its confidence interval using delta method for fixed ratio design
 #'
 #' this code is extracted from the source code distributed at https://biostatistics.mdanderson.org/SoftwareDownload/
+#'
+#' Two papers have been published by Lee et al, one in 2007 (Lee2007) and on in 2009 (Lee2009). The Lee2007 paper 
+#' described five methods to assess interaction: (1) Lowewe additivity model using interaction index (IAI) (2) Model of Greco et al 1990.
+#' This approach uses $\alpha$ as the metric and it can be related to IAI (3) Model of Machado and Robinson which uses a metric denoted
+#' as $\eta$ (4) Model of Plummer and Short which can also be linked to IAI through the parameter $\beta_4$ (5) Model of
+#' Carter et al that can be linked to IAI through the parameter $\beta_{12}$. For more details of these models, please refer to Lee2007.
+#' 
+#' The Lee2009 paper provided generalization of IAI to multiple drugs using Lowewe additivity model and assumption of Chou and Talalay's median effect
+#' equation. The Chou and Talalay's median effect equation can be expressed as: log(E/(1-E))=m(log d - log Dm) where E is the effect at dose d for a
+#' compound whose median effective dose. 
+#'
+#' Some notes about experiment design. Usually the data is either fixed ratio design (ray design) or grid design which means all-possible combination of drug concentrations
+#' between two drugs are available. The Lee2007 paper provided an example of grid design. However, specific fixed ratio is used to fit the median effect model which is the basis to estimate IAI. The Lee2009 paper
+#' considered with fixed ratio design.  
+#'
 #' @param d1 dose for drug 1 
 #' @param d2 dose for drug 2
 #' @param e corresponding response in the range [0, 1]
 #' @param E a vector of responses (between 0 and 1) where IAI and confidence interval are to be computed from.                                           
 #' @param alpha significance level of confidence interval             
+#' @param d2.d1.force passed to detect_ray_design() function    
 #' @return a data frame with columns IAI, IAI.low, IAI.up, E, dx1 (corresponding dose of drug 1), dx2 (corresponding dose of drug 1), 
 #' @export
-fitIAI <- function(d1, d2, e, E=seq(0.05, 0.95, 0.005), name1='Drug A', name2='Drug B', alpha=0.05){
-	res_design <- detect_ray_design(d1=d1, d2=d2, e=e)
+#' @references Lee, J. J., & Kong, M. (2009). Confidence intervals 
+#'   of interaction index for assessing multiple drug interaction. Statistics in biopharmaceutical research, 1(1), 4-17.
+#' @references Lee, J. Jack, et al (2007). Interaction index and different 
+#'    methods for determining drug interaction in combination therapy. Journal of biopharmaceutical statistics 17.3 461-480.
+fitIAI <- function(d1, d2, e, E=seq(0.05, 0.95, 0.005), name1='Drug A', name2='Drug B', alpha=0.05, d2.d1.force=NA){
+	res_design <- detect_ray_design(d1=d1, d2=d2, e=e, d2.d1.force=d2.d1.force)
 	# fit median-effect model
 	medianEffect <- fit_median_efect(d1=d1, d2=d2, e=e, d2.d1=res_design$d2.d1, name1=name1, name2=name2)
 	if(res_design$isRayDesign!=TRUE) { # not fixed ratio design, fitCI is NULL
 		#warning("This is not a ray design; computation aborted!")
 		warning("This is not a ray design; computation is done with method derived from fixed ratio!")
 		#fitCI <- NULL
-	} #else {
+	} else {
+		warning(sprintf("Fixed ratio design detected. Fixed ratio is %.3f\n", res_design$d2.d1))
+	}
 	## fit CI
 	fitCI <- with(res_design, 
 		CI.delta(d1=d1, e1=e1, d2=d2, e2=e2, d12=d12, 
@@ -265,11 +290,11 @@ fitIAI <- function(d1, d2, e, E=seq(0.05, 0.95, 0.005), name1='Drug A', name2='D
 #' @param contour.level contour level. only effective if type='contour'
 #' @param mode specify if to plot against response, dose or both. only effective if type=='IAI'. can be either 'response', 'dose', or 'both'
 #' @export
-plotIAI <- function(fit, type=c('IAI', 'medianEffect', 'doseResponseCurve', 'contour'), contour.level=(1:9)/10, mode='both'){
+plotIAI <- function(fit, type=c('IAI', 'medianEffect', 'doseResponseCurve', 'contour'), contour.level=(1:9)/10, ylim=NULL, mode='both'){
 	if(type=='IAI' & !is.null(fit$CI)){
 		resCI <- fit$CI
 		#browser()
-		ylim <- range(resCI$IAI)
+		if(is.null(ylim)) ylim <- range(resCI$IAI)
 		op <- par(mar=c(8, 5, 4, 4) + 0.1)
 		lty_E <- 4
 		# CI
@@ -355,10 +380,19 @@ plotIAI <- function(fit, type=c('IAI', 'medianEffect', 'doseResponseCurve', 'con
 #
 # originally called: CI.delta from CI_IIV2.SSC                          
 #
+#
+#' truncate effect so that it will never be 0 or 1
+truncate_effect <- function(e, min=1e-4, max=1-1e-4){
+	e[e<min] <- min
+	e[e>max] <- max
+	e
+}
+
  
 #' Estimate the interaction index as well as its confidence interval using delta method for fixed ratio design
 #'
-#' this code is extracted from the source code distributed at https://biostatistics.mdanderson.org/SoftwareDownload/
+#' This code is extracted from the source code distributed at https://biostatistics.mdanderson.org/SoftwareDownload/
+#' The paper is  
 #' Two versions are included in the source code: CI_IIV2 2008.SSC and CI_IIV2.SSC
 #' At first we implement CI_IIV2.SSC; this gives wider CI band; so we decide to use  CI_IIV2 2008.SSC. Further, CI_IIV2 2008.SSC has
 #' a more recent date and thus most updated.
@@ -374,9 +408,18 @@ plotIAI <- function(fit, type=c('IAI', 'medianEffect', 'doseResponseCurve', 'con
 #' @param alpha significance level of confidence interval             
 #' @return a data frame with columns IAI, IAI.low, IAI.up, E, dx1 (corresponding dose of drug 1), dx2 (corresponding dose of drug 1), 
 #'  dx12 (corresponding dose of combined drug, same as definition of d12)
-CI.delta <- function(d1, e1, d2, e2, d12, e12, d2.d1, E, alpha=0.05)
+#' @references Lee, J. J., & Kong, M. (2009). Confidence intervals 
+#'   of interaction index for assessing multiple drug interaction. Statistics in biopharmaceutical research, 1(1), 4-17.
+CI.delta <- function(d1, e1, d2, e2, d12, e12, d2.d1, E, alpha=0.05, min=0.02, max=0.98)
 {
-     lm1 <- lm(log(e1/(1-e1))~log(d1))
+     # min and max are used to truncate the effect so that logit transform would not be obsurd; the original code is not very robust!
+	 #browser()
+	 e1 <- truncate_effect(e1, min=min, max=max)
+	 e2 <- truncate_effect(e2, min=min, max=max)
+	 e12 <- truncate_effect(e12, min=min, max=max)
+	 # if e1, e2 or e12 has value of 0 or 1, the logit would be Inf and leads to error for lm.
+	 # thus use safe log
+	 lm1 <- lm(log(e1/(1-e1))~log(d1))
      dm1 <- exp(-summary(lm1)$coef[1,1]/summary(lm1)$coef[2,1])
      lm2 <- lm(log(e2/(1-e2))~log(d2))
      dm2 <- exp(-summary(lm2)$coef[1,1]/summary(lm2)$coef[2,1])
@@ -415,7 +458,6 @@ CI.delta <- function(d1, e1, d2, e2, d12, e12, d2.d1, E, alpha=0.05)
 	 #browser()
 	 return(IAI)
 }
-
 
 
 if(FALSE){
@@ -459,10 +501,16 @@ res_design <- detect_ray_design(d1=UMSCC22B[, 1], d2=UMSCC22B[, 2], e=UMSCC22B[,
 
 
 #### this reproduces the example figures exactly in the source code: SYNERGY_V3_original
-fit_allPoss <- fitIAI(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1, name1='SCH66336', name2='4HPR')
+fit_allPoss_1 <- fitIAI(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1, name1='SCH66336', name2='4HPR',d2.d1.force=1)
+fit_allPoss_2 <- fitIAI(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1, name1='SCH66336', name2='4HPR',d2.d1.force=2)
+fit_allPoss_3 <- fitIAI(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1, name1='SCH66336', name2='4HPR',d2.d1.force=0.5)
+plotCCC(fit_allPoss_1$CI$IAI, fit_allPoss_3$CI$IAI) # there is difference!
+abline(0, 1, col=2) 
 #medianEffect <- fit_median_efect(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1, d2.d1=res_design$d2.d1)
 res_design <- detect_ray_design(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1)
-plotIAI(fit_allPoss, type='IAI', mode='both') # this use the CI method; approximately
+plotIAI(fit_allPoss_1, type='IAI', mode='both') # this use the CI method; approximately
+plotIAI(fit_allPoss_2, type='IAI', mode='both') # this use the CI method; approximately
+plotIAI(fit_allPoss_3, type='IAI', mode='both') # this use the CI method; approximately
 plotIAI(fit_allPoss, type='contour', mode='both') # this is slightly different from the paper, due to the author's inconsistency
 plotIAI(fit_allPoss, type='medianEffect', mode='both')
 plotIAI(fit_allPoss, type='doseResponseCurve', mode='both')

@@ -40,8 +40,12 @@ options(continue=' ')
 \section{Introduction}
 There is a great variety of models developed for dose-response data, many of which have been implemented in 
  the \texttt{drc} and \texttt{DoseFinding} packages. \texttt{drexplorer} combines both packages to aid the user to visually examine and compare how existing models
- perform on the data. Another important feature for \texttt{drexplorer} is to allow the user to identify outlier measurements and visually examine
+ perform on the data. We also incorporate model selection. Another important feature for \texttt{drexplorer} is to allow the user to identify outlier measurements and visually examine
  how these outliers affect the fitted model. 
+
+ In addition to fit dose-response models, \texttt{drexplorer} also implements methods previously published to assess drug-drug interaction. 
+ Graphical User Interfaces (GUIs) have been
+designed to allow users without advanced programming skills to perform dose-response analysis.  
 
  The main entry for \texttt{drexplorer} is the drFit() function and computeIC() function. drFit() fits a model.
 Outlier detection is also embedded into drFit(). Once a model is fitted, computeIC() computes IC values at specified percentiles.
@@ -75,6 +79,22 @@ We also examine all dose levels and find no further outliers:
 drOutlier(drMat=ryegrass[, c(2, 1)], alpha=0.05)
 @
 
+\section{Assessing Reproducibility}
+Sometimes replicated viability assays are performed. In such case, it is useful to examine if the experiments are reproducible. 
+A good metric is the Concordance Correlation Coefficient (CCC) that captures both the location shift as
+ well as scale shift between the replicates. The plotCCC function can be used to compute CCC and visualize the replicated data.
+ 
+
+<<>>=
+set.seed(100)
+r1 <- runif(28)
+r2 <- r1+rnorm(28, 0, 0.1)
+ccc <- plotCCC(r1, r2)
+ccc
+@ 
+
+Here we simulate two response vectors and calculate CCC. The computed CCC value is \Sexpr{round(ccc['ccc'], 3)}, location shift is
+\Sexpr{round(ccc['l_shift'], 3)}, scale shift is \Sexpr{round(ccc['s_shift'], 3)}, Pearson correlation is \Sexpr{round(ccc['corr'], 3)}. 
 
 \section{Fit dose-response models}
 Below we show how to fit a dose-response model. The fitDRC() function is a wrapper to the \texttt{drc} and \texttt{DoseFinding} packages.
@@ -88,13 +108,15 @@ To remove controls (responses at dose=0) during model fitting, we can set fitCtr
 Note that the responses are scaled by mean response at dose=0 before model fitting. 
 
 Below we fit a sigmaEmax model. We set alpha=1 to disable outlier removal and fitCtr=FALSE to exclude controls.
-<<>>=
-fit_sigEmax_alpha1 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=1, fitCtr=FALSE)
+<<keep.source=TRUE>>=
+fit_sigEmax_alpha1 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", 
+	alpha=1, fitCtr=FALSE)
 @
 
 The result is slightly different when outliers passing significance level of 0.05 is removed.
-<<>>=
-fit_sigEmax_alpha_o5 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=0.05, fitCtr=FALSE)
+<<keep.source=TRUE>>=
+fit_sigEmax_alpha_o5 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", 
+	alpha=0.05, fitCtr=FALSE)
 fit_sigEmax_alpha1@fit
 fit_sigEmax_alpha_o5@fit
 @
@@ -127,8 +149,8 @@ computeIC(fit_sigEmax_alpha_o5, percent=seq(0, 1, by=0.1), log.d=FALSE, interpol
 @
 
 \section{Comparing multiple dose-response curves}
-We provide S4 generic functions plot and lines for fitted model. As a result, it is easy to compare different models 
-to graphically examine outliers and multiple dose-response curves.
+We provide S4 generic functions (plot and lines) for fitted model. As a result, it is easy to compare different models 
+and graphically examine outliers through multiple dose-response curves.
 
 Outliers at significance levels 0.01 and 0.05 are indicated by different colors and symbols. Below we show the LL.3, LL.3u and sigEmax curves in this example
 corresponding to the three-parameter log-logistic model with lower limit 0, three-parameter log-logistic with upper limit 1 and the sigmoid Emax model.
@@ -162,6 +184,90 @@ lines(fit.sigEmax, col=6, lwd=2)
 legend("bottomleft", c('alpha=0.05', 'ignored'), col=c(6, 7), lwd=3)
 @
 
+\section{Drug Interaction Index}
+Administering two drugs simultaneously might induce stronger effect than if administered
+separately. This is called synergism. Experiments to detect synergism (or antagonism which is the opposite) are usually in two forms. 
+One is the fixed ratio design (ray design) where the ratio of doses between 
+two drugs is a constant. Another one is grid design which means all-possible combinations of drug doses
+are available. 
+
+Two papers have been published regarding to drug interaction index (IAI) by Lee et al, 
+	one in 2007 (Lee2007) \citep{lee2007interaction} and on in 2009 (Lee2009) \citep{lee2009confidence}. The Lee2007 paper 
+described five methods to assess interaction: (1) Lowewe additivity model using interaction index (IAI) (2) Model of Greco et al 1990.
+This approach uses $\alpha$ as the metric and it can be related to IAI (3) Model of Machado and Robinson which uses a metric denoted
+as $\eta$ (4) Model of Plummer and Short which can also be linked to IAI through the parameter $\beta_4$ (5) Model of
+Carter et al that can be linked to IAI through the parameter $\beta_{12}$. For more details 
+of these models, please refer to Lee2007 \citep{lee2007interaction}.
+
+The two papers by Lee et al discussed the fixed ratio design and the source code for doing this is incorporated
+into \texttt{drexplorer}. To work on grid design, a fixed ratio from the data needs to be selected in order to apply their method. For
+example, the Lee2007 paper provided an example of grid design. A fixed ratio of 1 was specified in the paper. The specification of
+fixed ratio would affect the fitted median effect model (see definition in \citep{lee2007interaction}) for the drug mixture as well as
+estimation of IAI. As a result, IAI has a ratio dependent interpretation. 
+
+Below we load the UMSCC22B data from \citep{lee2009confidence}. This data has a fixed ratio design. The \texttt{fitIAI} function estimates IAI
+as well as its confidence interval after specifying dose1, dose2 and effect (between 0 and 1). 
+
+<<keep.source=TRUE>>=
+data(UMSCC22B)	
+fit_fixedRay <- fitIAI(d1=UMSCC22B[, 1], d2=UMSCC22B[, 2], 
+			e=UMSCC22B[, 3], name1='SCH66336', name2='4HPR')
+@
+
+The \texttt{plotIAI} function is then used to generate different plots including IAI versus response, IAI versus dose (predicted dose for the
+drug mixture, see equation (6) in \citep{lee2007interaction}), median effect plot and dose response curves. We can also plot IAI versus response as well as IAI versus
+dose in one figure by specifying mode='both'. 
+
+The median effect equation \citep{chou1984quantitative} is as following:
+$$E=\frac{(d/D_{m})^m}{1+(d/D_{m})^m}$$
+where E is the induced effect of a drug with dose d whose median effective dose is $D_{m}$ and $m$ is a slope parameter. 
+
+This equation can be arranged as:
+$$logit(E)=m(log d - log D_{m})$$
+
+The median effect plot is just plotting logit(E) versus log10 dose; The dose response curve is plotting E versus dose. 
+
+<<fig=TRUE>>=
+# IAI vs response
+plotIAI(fit_fixedRay, type='IAI', mode='response') 
+@
+
+<<fig=TRUE>>=
+# IAI versus dose
+plotIAI(fit_fixedRay, type='IAI', mode='dose') 
+@
+
+<<fig=TRUE>>=
+# median effect
+plotIAI(fit_fixedRay, type='medianEffect') 
+@
+
+In \citep{lee2007interaction}, there is an example data (nl22B2) using grid design. Here we examine the estimate of IAI at different fixed ratios.
+
+<<>>=
+data(nl22B2)	
+fit_allPoss_1 <- fitIAI(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1, name1='SCH66336', name2='4HPR',d2.d1.force=1)
+fit_allPoss_2 <- fitIAI(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1, name1='SCH66336', name2='4HPR',d2.d1.force=2)
+@
+
+From the median effect plot, we can find that there are 4 data points for drug mixtures at fixed ratio of 1 while only 2 data points
+are available at fixed ratio of 2.
+
+<<fig=TRUE>>=
+# median effect
+plotIAI(fit_allPoss_1, type='medianEffect') 
+@
+
+<<fig=TRUE>>=
+plotIAI(fit_allPoss_2, type='medianEffect') 
+@
+
+Below we compare IAI estimated from the two scenarios. 
+
+<<fig=TRUE>>=
+plotCCC(fit_allPoss_1$CI$IAI, fit_allPoss_2$CI$IAI)
+@
+
 
 \section{File Location and Session Info}
 <<sessionInfo>>=
@@ -169,4 +275,25 @@ getwd()
 sessionInfo()
 @ 
 
+\begin{thebibliography}{1}
+\bibitem{lee2007interaction}
+Lee, J Jack and Kong, Maiying and Ayers, Gregory D and Lotan, Reuben
+\newblock Mapping and quantifying mammalian transcriptomes by rna-seq.
+\newblock {\em Journal of biopharmaceutical statistics}, 17(3):461--480, 2007.
+
+\bibitem{lee2009confidence}
+Lee, J Jack and Kong, Maiying
+\newblock Confidence intervals of interaction index for assessing multiple drug interaction.
+\newblock {\em Statistics in biopharmaceutical research}, 1(1):4--17, 2009.
+
+\bibitem{chou1984quantitative}
+Chou, Ting-Chao and Talalay, Paul
+\newblock Quantitative analysis of dose-effect relationships: the combined effects of multiple drugs or enzyme inhibitors.
+\newblock {\em Advances in enzyme regulation}, 22:27--55, 1984.
+
+\end{thebibliography}
+
 \end{document}
+
+%   cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/for_vignettes; R --vanilla
+%   Sweave("drexplorer.Rnw")

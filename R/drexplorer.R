@@ -1,5 +1,5 @@
 if(FALSE){
-# cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/
+# cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/; R --vanilla
 
 
 # cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/dre_roxygen/drexplorer

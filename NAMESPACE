@@ -20,6 +20,7 @@ export(detect_ray_design)
 export(fitIAI)
 export(fit_median_efect)
 export(plotIAI)
+export(plotCCC)
 export(plotOneExp)
 export(fitOneExp)
 

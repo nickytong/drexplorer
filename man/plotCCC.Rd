@@ -44,6 +44,8 @@ a vector of c('ccc', 's_shift', 'l_shift', 'ccc_lo', 'ccc_hi', 'Cb', 'corr'). s_
 This function calculates and plots concordance for paired data.
 }
 \details{
-infinite values in x and y are masked as NA so as to compute CCC and corr (otherwise, nan).
+This function calls the epi.ccc() function from epiR package for the calculation.
+
+infinite values in x and y are masked as NA so as to compute CCC and corr (otherwise, result becomes nan).
 }
 
