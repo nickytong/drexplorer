@@ -248,7 +248,7 @@ plot_median_effect <- function(medianEffect, type=c('medianEffect', 'doseRespons
 #' @param e corresponding response in the range [0, 1]
 #' @param E a vector of responses (between 0 and 1) where IAI and confidence interval are to be computed from.                                           
 #' @param alpha significance level of confidence interval             
-#' @param d2.d1.force passed to detect_ray_design() function    
+#' @param d2.d1.force a ratio passed to detect_ray_design() function so as to specify a fixed ratio for grid design   
 #' @return a data frame with columns IAI, IAI.low, IAI.up, E, dx1 (corresponding dose of drug 1), dx2 (corresponding dose of drug 1), 
 #' @export
 #' @references Lee, J. J., & Kong, M. (2009). Confidence intervals 
