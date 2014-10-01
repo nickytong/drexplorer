@@ -1,30 +1,77 @@
-%\VignetteIndexEntry{drexplorer Vignette}
-%\VignetteDepends{drc, DoseFinding, methods}
-%\VignetteKeywords{drexplorer}
-%\VignettePackage{drexplorer}
+% \VignetteEngine{knitr}
+% \VignetteIndexEntry{An introduction to drexplorer}
+% \VignettePackage{drexplorer}}
 
-\documentclass{article}
+\documentclass[12pt]{article}
+\usepackage[a4paper,left=3cm,top=2cm,bottom=3cm,right=3cm,ignoreheadfoot]{geometry}
+\pagestyle{empty}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{helvet}
+\usepackage[titletoc]{appendix}
+\usepackage{tocloft}
+
+\setlength{\parindent}{0em}
+\setlength{\parskip}{.5em}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\newcommand{\Rcode}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\small\texttt{#1}}}
+\newcommand{\Rfunction}[1]{\Robject{#1}}
+\newcommand{\Rpackage}[1]{\textit{#1}}
+\newcommand{\Rparameter}[1]{\textit{#1}}
+\newcommand{\Rclass}[1]{\textit{#1}}
+\newcommand{\R}{\textsf{R}}
+
+\usepackage[
+  bookmarks,%
+  colorlinks,%
+  linktoc=section,%
+  linkcolor=RedViolet,%
+  citecolor=RedViolet,%
+  urlcolor=RedViolet,%
+  linkbordercolor={1 1 1},%
+  citebordercolor={1 1 1},%
+  urlbordercolor={1 1 1},%
+  raiselinks,%
+  plainpages,%
+  pdftex
+  ]{hyperref}
+
+
+\usepackage{cite}
+\renewcommand{\floatpagefraction}{0.9}
+
+\usepackage{sectsty}
+\sectionfont{\sffamily\bfseries\color{RoyalBlue}\sectionrule{0pt}{0pt}{-1ex}{1pt}}
+\subsectionfont{\sffamily\bfseries\color{RoyalBlue}}
+\subsubsectionfont{\sffamily\bfseries\color{RoyalBlue}}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyfoot{}
+\lfoot{}\cfoot{}\rfoot{}
+\renewcommand{\headrule}{}
+
 \usepackage{graphicx}
-\usepackage{hyperref}
-\usepackage{amsmath}
-\usepackage{natbib}
+%\usepackage{xstring}
 
-\pagestyle{myheadings}
 
-\setlength{\topmargin}{0in}
-\setlength{\textheight}{8in}
-\setlength{\textwidth}{6.5in}
-\setlength{\oddsidemargin}{0in}
-\setlength{\evensidemargin}{0in}
 
-\title{Dose-response Explorer: Exploring different models and how outliers affect model fitting} 
+<<include=FALSE>>=
+library(knitr)
+library(drexplorer)
+opts_chunk$set(tidy=TRUE,tidy.opts=list(keep.blank.line=FALSE, width.cutoff=50),out.truncate=80,out.lines=6,cache=FALSE,dev='pdf',include=TRUE,fig.width=6,fig.height=6,resolution=150)
+@
+
+\newcommand{\fixme}[1]{{\textbf{Fixme:} \textit{\textcolor{blue}{#1}}}}
+
+\title{Dose-response Explorer: Exploring different models and drug-drug interaction} 
 \author{Kevin R Coombes and Pan Tong}
 \date{\today}
 
-\usepackage{Sweave}
 \begin{document}
 
-\SweaveOpts{prefix.string=drexplorer}
 
 \maketitle
 
@@ -39,15 +86,15 @@ options(continue=' ')
 
 \section{Introduction}
 There is a great variety of models developed for dose-response data, many of which have been implemented in 
- the \texttt{drc} and \texttt{DoseFinding} packages. \texttt{drexplorer} combines both packages to aid the user to visually examine and compare how existing models
- perform on the data. We also incorporate model selection. Another important feature for \texttt{drexplorer} is to allow the user to identify outlier measurements and visually examine
+ the \Rpackage{drc} and \Rpackage{DoseFinding} packages. \Rpackage{drexplorer} combines both packages to aid the user to visually examine and compare how existing models
+ perform on the data. We also incorporate model selection. Another important feature for \Rpackage{drexplorer} is to allow the user to identify outlier measurements and visually examine
  how these outliers affect the fitted model. 
 
- In addition to fit dose-response models, \texttt{drexplorer} also implements methods previously published to assess drug-drug interaction. 
+ In addition to fit dose-response models, \Rpackage{drexplorer} also implements methods previously published to assess drug-drug interaction. 
  Graphical User Interfaces (GUIs) have been
 designed to allow users without advanced programming skills to perform dose-response analysis.  
 
- The main entry for \texttt{drexplorer} is the drFit() function and computeIC() function. drFit() fits a model.
+ The main entry for \Rpackage{drexplorer} is the drFit() function and computeIC() function. drFit() fits a model.
 Outlier detection is also embedded into drFit(). Once a model is fitted, computeIC() computes IC values at specified percentiles.
 
 \section{Outlier identification}
@@ -57,9 +104,9 @@ estimated from controls. The null distribution for q has been derived and 1\% an
 We implement this procedure. In particular, NewmanTest() returns a logic vector specifying whether the observations are outliers.
 Usually, drug-response data contains multiple doses. Therefore, we write a wrapper drOutlier() that compute the result for all doses each dose at a time.
 
-We use the \texttt{ryegrass} data from \texttt{drc} package for illustration purpose.
+We use the \texttt{ryegrass} data from \Rpackage{drc} package for illustration purpose.
 
-First, we load the \texttt{drexplorer} package and attach the \texttt{ryegrass} data.
+First, we load the \Rpackage{drexplorer} package and attach the \Rpackage{ryegrass} data.
 <<loadLibrary>>=
 library(drexplorer)
 data(ryegrass)
@@ -97,7 +144,7 @@ Here we simulate two response vectors and calculate CCC. The computed CCC value 
 \Sexpr{round(ccc['l_shift'], 3)}, scale shift is \Sexpr{round(ccc['s_shift'], 3)}, Pearson correlation is \Sexpr{round(ccc['corr'], 3)}. 
 
 \section{Fit dose-response models}
-Below we show how to fit a dose-response model. The fitDRC() function is a wrapper to the \texttt{drc} and \texttt{DoseFinding} packages.
+Below we show how to fit a dose-response model. The fitDRC() function is a wrapper to the \Rpackage{drc} and \Rpackage{DoseFinding} packages.
 Therefore, all models implemented by either package can be fitted. A model is specified by a modelName and package name to be passed to this function.
 
 Outliers can be identified and removed from model fitting by specifying the parameter alpha (either at significance level of 0.01 or 0.05). To disable outlier
@@ -108,13 +155,13 @@ To remove controls (responses at dose=0) during model fitting, we can set fitCtr
 Note that the responses are scaled by mean response at dose=0 before model fitting. 
 
 Below we fit a sigmaEmax model. We set alpha=1 to disable outlier removal and fitCtr=FALSE to exclude controls.
-<<keep.source=TRUE>>=
+<<>>=
 fit_sigEmax_alpha1 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", 
 	alpha=1, fitCtr=FALSE)
 @
 
 The result is slightly different when outliers passing significance level of 0.05 is removed.
-<<keep.source=TRUE>>=
+<<>>=
 fit_sigEmax_alpha_o5 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", 
 	alpha=0.05, fitCtr=FALSE)
 fit_sigEmax_alpha1@fit
@@ -155,7 +202,7 @@ and graphically examine outliers through multiple dose-response curves.
 Outliers at significance levels 0.01 and 0.05 are indicated by different colors and symbols. Below we show the LL.3, LL.3u and sigEmax curves in this example
 corresponding to the three-parameter log-logistic model with lower limit 0, three-parameter log-logistic with upper limit 1 and the sigmoid Emax model.
 
-<<fig=TRUE>>=
+<<>>=
 fit.LL.3 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "LL.3", alpha=0.05, fitCtr=FALSE)
 fit.LL.3u <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "LL.3u", alpha=0.05, fitCtr=FALSE)
 fit.sigEmax <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=0.05, fitCtr=FALSE)
@@ -175,7 +222,7 @@ sapply(list(fit.LL.3, fit.LL.3u, fit.sigEmax), function(x) x@info$RSE)
 
 We also compare the curve using sigEmax model with and without outlier identification.
 
-<<fig=TRUE>>=
+<<>>=
 # no outlier excluded
 fit.sigEmax0 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=1, fitCtr=FALSE)
 ###
@@ -192,33 +239,33 @@ two drugs is a constant. Another one is grid design which means all-possible com
 are available. 
 
 Two papers have been published regarding to drug interaction index (IAI) by Lee et al, 
-	one in 2007 (Lee2007) \citep{lee2007interaction} and on in 2009 (Lee2009) \citep{lee2009confidence}. The Lee2007 paper 
+	one in 2007 (Lee2007) \cite{lee2007interaction} and on in 2009 (Lee2009) \cite{lee2009confidence}. The Lee2007 paper 
 described five methods to assess interaction: (1) Lowewe additivity model using interaction index (IAI) (2) Model of Greco et al 1990.
 This approach uses $\alpha$ as the metric and it can be related to IAI (3) Model of Machado and Robinson which uses a metric denoted
 as $\eta$ (4) Model of Plummer and Short which can also be linked to IAI through the parameter $\beta_4$ (5) Model of
 Carter et al that can be linked to IAI through the parameter $\beta_{12}$. For more details 
-of these models, please refer to Lee2007 \citep{lee2007interaction}.
+of these models, please refer to Lee2007 \cite{lee2007interaction}.
 
 The two papers by Lee et al discussed the fixed ratio design and the source code for doing this is incorporated
-into \texttt{drexplorer}. To work on grid design, a fixed ratio from the data needs to be selected in order to apply their method. For
+into \Rpackage{drexplorer}. To work on grid design, a fixed ratio from the data needs to be selected in order to apply their method. For
 example, the Lee2007 paper provided an example of grid design. A fixed ratio of 1 was specified in the paper. The specification of
-fixed ratio would affect the fitted median effect model (see definition in \citep{lee2007interaction}) for the drug mixture as well as
+fixed ratio would affect the fitted median effect model (see definition in \cite{lee2007interaction}) for the drug mixture as well as
 estimation of IAI. As a result, IAI has a ratio dependent interpretation. 
 
-Below we load the UMSCC22B data from \citep{lee2009confidence}. This data has a fixed ratio design. The \texttt{fitIAI} function estimates IAI
+Below we load the UMSCC22B data from \cite{lee2009confidence}. This data has a fixed ratio design. The \texttt{fitIAI} function estimates IAI
 as well as its confidence interval after specifying dose1, dose2 and effect (between 0 and 1). 
 
-<<keep.source=TRUE>>=
+<<>>=
 data(UMSCC22B)	
 fit_fixedRay <- fitIAI(d1=UMSCC22B[, 1], d2=UMSCC22B[, 2], 
 			e=UMSCC22B[, 3], name1='SCH66336', name2='4HPR')
 @
 
 The \texttt{plotIAI} function is then used to generate different plots including IAI versus response, IAI versus dose (predicted dose for the
-drug mixture, see equation (6) in \citep{lee2007interaction}), median effect plot and dose response curves. We can also plot IAI versus response as well as IAI versus
+drug mixture, see equation (6) in \cite{lee2007interaction}), median effect plot and dose response curves. We can also plot IAI versus response as well as IAI versus
 dose in one figure by specifying mode='both'. 
 
-The median effect equation \citep{chou1984quantitative} is as following:
+The median effect equation \cite{chou1984quantitative} is as following:
 $$E=\frac{(d/D_{m})^m}{1+(d/D_{m})^m}$$
 where E is the induced effect of a drug with dose d whose median effective dose is $D_{m}$ and $m$ is a slope parameter. 
 
@@ -227,22 +274,22 @@ $$logit(E)=m(log d - log D_{m})$$
 
 The median effect plot is just plotting logit(E) versus log10 dose; The dose response curve is plotting E versus dose. 
 
-<<fig=TRUE>>=
+<<>>=
 # IAI vs response
 plotIAI(fit_fixedRay, type='IAI', mode='response') 
 @
 
-<<fig=TRUE>>=
+<<>>=
 # IAI versus dose
 plotIAI(fit_fixedRay, type='IAI', mode='dose') 
 @
 
-<<fig=TRUE>>=
+<<>>=
 # median effect
 plotIAI(fit_fixedRay, type='medianEffect') 
 @
 
-In \citep{lee2007interaction}, there is an example data (nl22B2) using grid design. Here we examine the estimate of IAI at different fixed ratios.
+In \cite{lee2007interaction}, there is an example data (nl22B2) using grid design. Here we examine the estimate of IAI at different fixed ratios.
 
 <<>>=
 data(nl22B2)	
@@ -253,18 +300,18 @@ fit_allPoss_2 <- fitIAI(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1, name1='SCH66
 From the median effect plot, we can find that there are 4 data points for drug mixtures at fixed ratio of 1 while only 2 data points
 are available at fixed ratio of 2.
 
-<<fig=TRUE>>=
+<<>>=
 # median effect
 plotIAI(fit_allPoss_1, type='medianEffect') 
 @
 
-<<fig=TRUE>>=
+<<>>=
 plotIAI(fit_allPoss_2, type='medianEffect') 
 @
 
 Below we compare IAI estimated from the two scenarios. 
 
-<<fig=TRUE>>=
+<<>>=
 plotCCC(fit_allPoss_1$CI$IAI, fit_allPoss_2$CI$IAI)
 @
 
@@ -293,7 +340,10 @@ Chou, Ting-Chao and Talalay, Paul
 
 \end{thebibliography}
 
+\bibliographystyle{unsrt}
+\bibliography{drexplorer}
+
 \end{document}
 
 %   cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/for_vignettes; R --vanilla
-%   Sweave("drexplorer.Rnw")
+%   knitr::knit("drexplorer.Rnw")
