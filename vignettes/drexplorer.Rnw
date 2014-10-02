@@ -316,6 +316,10 @@ plotCCC(fit_allPoss_1$CI$IAI, fit_allPoss_2$CI$IAI)
 @
 
 
+
+% for MacSynergism II
+% write.csv(dcast(nl22B2, schd~hpr), 'n122B2_wide_format.csv')
+
 \section{GUI Usage}
 GUI interface has been shipped with \Rpackage{drexplorer} which is built upon the \Rpackage{fgui}. After loading the \Rpackage{drexplorer} 
 package, typing $$\texttt{drexplorerGUI\_1()}$$ in the R console will bring out the GUI for fitting dose-response curves. 
@@ -332,5 +336,5 @@ toLatex(sessionInfo())
 
 \end{document}
 
-%   cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/for_vignettes; R --vanilla
+%   cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/for_vignettes; R0
 %   knitr::knit("drexplorer.Rnw")
