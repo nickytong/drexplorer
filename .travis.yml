@@ -1,3 +1,4 @@
+# there is https://github.com/craigcitro/r-travis that might be more optimal
 # it is not really python, but there is no R support on Travis CI yet
 language: python
 
