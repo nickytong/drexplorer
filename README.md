@@ -43,4 +43,4 @@ vignette('drexplorer')
 
 ## Build Status
 [Travis
-CI](http://yihui.name/en/2013/04/travis-ci-general-purpose/) is used to check and build the latest version of **drexplorer**, similar to what CRAN does. The current status icon can be found on the top of this page.  
+CI](http://yihui.name/en/2013/04/travis-ci-general-purpose/) is used to check and build the latest version of **drexplorer**, similar to what CRAN does. The current status icon can be found under the title of this page.  
