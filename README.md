@@ -1,5 +1,6 @@
-drexplorer
-==========
+# drexplorer
+
+[![Build Status](https://travis-ci.org/klutometis/roxygen.png)](https://travis-ci.org/klutometis/roxygen)
 
 The drexplorer R package is developed to facilitate the analysis of dose-response data. It can be used to:
 * assess the reproducibility of replicates, 
