@@ -1,11 +1,10 @@
-% \VignetteEngine{knitr}
-% \VignetteIndexEntry{An introduction to drexplorer}
+% \VignetteEngine{knitr::knitr}
+% \VignetteIndexEntry{drexplorer}
 % \VignettePackage{drexplorer}
 
 % \\mdadqsfs02\bioinfo2\ptong1\Projects\Coombes\IC50Package\Package\drexplorer\inst\doc
 % \\mdadqsfs02\bioinfo2\ptong1\Projects\Coombes\IC50Package\Package\for_vignettes\drexplorer.Rnw
 % To compile this document, run the commands within R
-% require(knitr); knit2pdf("drexplorer.Rnw")
 
 \documentclass[12pt]{article}
 \usepackage[a4paper,left=3cm,top=2cm,bottom=3cm,right=3cm,ignoreheadfoot]{geometry}
@@ -335,6 +334,7 @@ toLatex(sessionInfo())
 @
 
 %   cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/for_vignettes; R0
+%   knitr::knit2pdf("drexplorer.Rnw")
 %   knitr::knit("drexplorer.Rnw")
 
 \bibliographystyle{unsrt}

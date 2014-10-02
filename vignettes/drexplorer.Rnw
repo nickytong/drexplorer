@@ -1,6 +1,10 @@
-% \VignetteEngine{knitr}
-% \VignetteIndexEntry{An introduction to drexplorer}
-% \VignettePackage{drexplorer}}
+% \VignetteEngine{knitr::knitr}
+% \VignetteIndexEntry{drexplorer}
+% \VignettePackage{drexplorer}
+
+% \\mdadqsfs02\bioinfo2\ptong1\Projects\Coombes\IC50Package\Package\drexplorer\inst\doc
+% \\mdadqsfs02\bioinfo2\ptong1\Projects\Coombes\IC50Package\Package\for_vignettes\drexplorer.Rnw
+% To compile this document, run the commands within R
 
 \documentclass[12pt]{article}
 \usepackage[a4paper,left=3cm,top=2cm,bottom=3cm,right=3cm,ignoreheadfoot]{geometry}
@@ -57,7 +61,6 @@
 %\usepackage{xstring}
 
 
-
 <<include=FALSE>>=
 library(knitr)
 library(drexplorer)
@@ -80,8 +83,7 @@ opts_chunk$set(tidy=TRUE,tidy.opts=list(keep.blank.line=FALSE, width.cutoff=50),
 %\listoftables
 
 <<echo=FALSE>>=
-options(width=80)
-options(continue=' ')
+options(digits=3, width=80, prompt=" ", continue=" ")
 @ 
 
 \section{Introduction}
@@ -331,10 +333,11 @@ data sets have been attached.
 toLatex(sessionInfo())
 @
 
+%   cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/for_vignettes; R0
+%   knitr::knit2pdf("drexplorer.Rnw")
+%   knitr::knit("drexplorer.Rnw")
+
 \bibliographystyle{unsrt}
 \bibliography{drexplorer}
 
 \end{document}
-
-%   cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/for_vignettes; R0
-%   knitr::knit("drexplorer.Rnw")
