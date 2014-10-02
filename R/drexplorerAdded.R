@@ -1,13 +1,21 @@
 if(FALSE){
+# cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/
 
-# cd /home/ptong1/Backup/GitHub/; R --vanilla
+
+#library(roxygen2)
+#library(roxygen) # not working
+#roxygenize("drexplorer")
+
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorer.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorerAdded.R'))
+
 library(devtools)
 build('drexplorer')
 install('drexplorer')
 
-
 detach("package:drexplorer", unload=TRUE)
 library(drexplorer)
+
 
 load_all('drexplorer')
 }

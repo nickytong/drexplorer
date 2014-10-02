@@ -1,17 +1,26 @@
 if(FALSE){
 # to run:
 # 
-# cd /home/ptong1/Backup/GitHub/; R --vanilla
+setwd('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/')
+
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorer.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorerAdded.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/aux_from_Extra.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/GUI_1_source_v2.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/interactionIndex.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/GUI_2_source.R'))
+
+res <- drexplorerGUI_2()
+
 library(devtools)
 build('drexplorer')
 install('drexplorer')
 
-
 detach("package:drexplorer", unload=TRUE)
 library(drexplorer)
 
-load_all('drexplorer')
 
+load_all('../drexplorer')
 
 }
 

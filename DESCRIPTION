@@ -12,8 +12,11 @@ Description: There is a great variety of models developed for dose-response
     important feature for drexplorer is to allow the user to identify outlier
     measurements and visually examine how these outliers affect the fitted
     model.
+URL: https://github.com/nickytong/drexplorer
 License: GPL (>= 2)
+Depends: R (>= 3.0.1)
 LazyData: true
-Depends: drc, DoseFinding, epiR, calibrate, methods, scales, RColorBrewer, stringr, plyr, fgui
+Imports: drc, DoseFinding, epiR, calibrate, methods, scales, RColorBrewer, stringr, plyr, fgui
 Suggests: knitr
+NeedsCompilation: no
 VignetteBuilder: knitr

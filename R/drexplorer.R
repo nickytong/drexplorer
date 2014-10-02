@@ -1,33 +1,29 @@
 if(FALSE){
-
-# cd /home/ptong1/Backup/GitHub/; R --vanilla
-library(devtools)
-build('drexplorer')
-install('drexplorer')
+# cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/; R --vanilla
 
 
-detach("package:drexplorer", unload=TRUE)
-library(drexplorer)
-
-load_all('drexplorer')
-
-# cd /home/ptong1/Backup/GitHub/dre_roxygen/drexplorer
+# cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/dre_roxygen/drexplorer; R0
 
 #library(roxygen2)
 #library(roxygen) # not working
 #roxygenize("drexplorer")
 
-packRootDir <- '/home/ptong1/Backup/GitHub'
+#setwd('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/')
 
-setwd(packRootDir)
 
-#/home/ptong1/Backup/GitHub/drexplorer/R
-source(file.path(packRootDir, 'drexplorer/R/drexplorer.R'))
-source(file.path(packRootDir, 'drexplorer/R/drexplorerAdded.R'))
-source(file.path(packRootDir, 'drexplorer/R/aux_from_Extra.R'))
-source(file.path(packRootDir, 'drexplorer/R/GUI_1_source_v2.R'))
-source(file.path(packRootDir, 'drexplorer/R/GUI_2_source.R'))
-source(file.path(packRootDir, 'drexplorer/R/interactionIndex.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorer.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorerAdded.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/aux_from_Extra.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/GUI_1_source_v2.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/GUI_2_source.R'))
+source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/interactionIndex.R'))
+
+
+setwd('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/')
+
+library(devtools)
+build('drexplorer')
+install('drexplorer')
 
 
 library(drexplorer)
@@ -38,6 +34,11 @@ res <- drexplorerGUI_1()
 
 
 
+detach("package:drexplorer", unload=TRUE)
+library(drexplorer)
+
+
+load_all('drexplorer')
 }
 ### 0.9.4: add RSE in the model fitting
 ### 0.9.3: computeIC as Kevin's way. The original approach predicted from the model is still preserved. But default is to use interpolation. 
