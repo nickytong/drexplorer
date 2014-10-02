@@ -44,8 +44,8 @@ load_all('drexplorer')
 #' 			Pearson correlation
 #' @export
 plotCCC <- function(x, y, xlab=NA, ylab=NA, tag='', col_legend='red', pch=1, main=NA, cex=2, plot=TRUE, ylim=NA, xlim=NA, maskBeyondLim=FALSE, plotOutlier=FALSE, sampleName=NA, alpha_outlier=0.01){
-	require(epiR)
-	require(calibrate) # text around points in base graphics
+	#require(epiR)
+	#require(calibrate) # text around points in base graphics
 	if(is.na(xlab)) xlab <- deparse(substitute(x)) # should happen at very beginning
 	if(is.na(ylab)) ylab <- deparse(substitute(y))
 	#browser()
