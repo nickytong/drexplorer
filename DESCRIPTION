@@ -14,9 +14,8 @@ Description: There is a great variety of models developed for dose-response
     model.
 URL: https://github.com/nickytong/drexplorer
 License: GPL (>= 2)
-Depends: R (>= 3.0.1)
 LazyData: true
-Imports: drc, DoseFinding, epiR, calibrate, methods, scales, RColorBrewer, stringr, plyr, fgui
+Depends: drc, DoseFinding, epiR, calibrate, methods, scales, RColorBrewer, stringr, plyr, fgui
 Suggests: knitr
 NeedsCompilation: no
 VignetteBuilder: knitr
