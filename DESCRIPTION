@@ -3,8 +3,8 @@ Type: Package
 Title: Dose-response Explorer
 Version: 0.1.0
 Date: 2014-01-06
-Author: Kevin R Coombes, Pan Tong
-Maintainer: Kevin R Coombes <kcoombes@mdanderson.org>
+Author: Pan Tong, Kevin R Coombes
+Maintainer: Pan Tong <ptong1@mdanderson.org>
 Description: There is a great variety of models developed for dose-response
     data, many of which have been implemented in the drc and DoseFinding
     packages. drexplorer combines both packages to aid the user to visually
@@ -15,4 +15,5 @@ Description: There is a great variety of models developed for dose-response
 License: GPL (>= 2)
 LazyData: true
 Depends: drc, DoseFinding, epiR, calibrate, methods, scales, RColorBrewer, stringr, plyr, fgui
-Packaged: 2014-02-21 18:50:56 UTC; ptong1
+Suggests: knitr
+VignetteBuilder: knitr
