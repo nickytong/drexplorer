@@ -34,6 +34,13 @@ drexplorerGUI_1()
 drexplorerGUI_2()
 ```    
 
+## User Mannual
+A [mannual](https://github.com/nickytong/drexplorer/blob/master/vignettes/drexplorer.pdf) is available. This is the same document as shown by typing the following command in R console.
+
+```r
+vignette('drexplorer')
+```
+
 ## Build Status
 [Travis
 CI](http://yihui.name/en/2013/04/travis-ci-general-purpose/) is used to check and build the latest version of **drexplorer**, similar to what CRAN does. The current status icon can be found on the top of this page.  
