@@ -1,18 +1,17 @@
-<!--
-%\VignetteEngine{knitr}
-%\VignetteIndexEntry{drexplorer mannual}
--->
-
 ---
 title: "Dose-response Explorer: Exploring different models and drug-drug interaction"
 author: "Pan Tong and Kevin R Coombes"
 date: "`r Sys.Date()`"
-bibliography:
-  - ../inst/drexplorer.bib
-output: html_document
+output:
+  html_document:
+    toc: true
+    theme: united
 ---
 
-
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{Not an Introduction to knitr}
+-->
 
 ## Introduction
 There is a great variety of models developed for dose-response data, many of which have been implemented in 
@@ -38,6 +37,11 @@ We use the *ryegrass* data from **drc** package for illustration purpose.
 
 First, we load the **drexplorer** package and attach the \Rpackage{ryegrass} data.
 
+```{r, echo=FALSE}
+knitr::opts_chunk$set(fig.align='center', fig.show='asis', 
+		dev='png', dpi=72*2, fig.width=5, fig.height=5)
+```
+		
 ```{r, message = FALSE}
 library(drexplorer)
 ```
@@ -45,6 +49,7 @@ library(drexplorer)
 At dose=3.75 and significance level 0.05, we find there is one outlier identified:
 
 ```{r}
+library(drc)
 data(ryegrass)
 dose <- ryegrass[, 2]
 response <- ryegrass[, 1]
@@ -171,20 +176,20 @@ two drugs is a constant. Another one is grid design which means all-possible com
 are available. 
 
 Two papers have been published regarding to drug interaction index (IAI) by Lee et al, 
-	one in 2007 (Lee2007) [@lee2007interaction] and on in 2009 (Lee2009) [@lee2009confidence]. The Lee2007 paper 
+	one in 2007 (Lee2007) [Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007)](#lee2007interaction) and on in 2009 (Lee2009) [Lee, J. J., & Kong, M. (2009)](#lee2009confidence). The Lee2007 paper 
 described five methods to assess interaction: (1) Lowewe additivity model using interaction index (IAI) (2) Model of Greco et al 1990.
 This approach uses $\alpha$ as the metric and it can be related to IAI (3) Model of Machado and Robinson which uses a metric denoted
 as $\eta$ (4) Model of Plummer and Short which can also be linked to IAI through the parameter $\beta_4$ (5) Model of
 Carter et al that can be linked to IAI through the parameter $\beta_{12}$. For more details 
-of these models, please refer to Lee2007 [@lee2007interaction].
+of these models, please refer to Lee2007 [Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007)](#lee2007interaction).
 
 The two papers by Lee et al discussed the fixed ratio design and the source code for doing this is incorporated
 into **drexplorer**. To work on grid design, a fixed ratio from the data needs to be selected in order to apply their method. For
 example, the Lee2007 paper provided an example of grid design. A fixed ratio of 1 was specified in the paper. The specification of
-fixed ratio would affect the fitted median effect model (see definition in [@lee2007interaction]) for the drug mixture as well as
+fixed ratio would affect the fitted median effect model (see definition in [Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007)](#lee2007interaction)) for the drug mixture as well as
 estimation of IAI. As a result, IAI has a ratio dependent interpretation. 
 
-Below we load the UMSCC22B data from [@lee2009confidence]. This data has a fixed ratio design. The *fitIAI* function estimates IAI
+Below we load the UMSCC22B data from [Lee, J. J., & Kong, M. (2009)](#lee2009confidence). This data has a fixed ratio design. The *fitIAI* function estimates IAI
 as well as its confidence interval after specifying dose1, dose2 and effect (between 0 and 1). 
 
 ```{r}
@@ -194,10 +199,10 @@ fit_fixedRay <- fitIAI(d1=UMSCC22B[, 1], d2=UMSCC22B[, 2],
 ```
 
 The *plotIAI* function is then used to generate different plots including IAI versus response, IAI versus dose (predicted dose for the
-drug mixture, see equation (6) in [@lee2007interaction]), median effect plot and dose response curves. We can also plot IAI versus response as well as IAI versus
+drug mixture, see equation (6) in [Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007)](#lee2007interaction)), median effect plot and dose response curves. We can also plot IAI versus response as well as IAI versus
 dose in one figure by specifying mode='both'. 
 
-The median effect equation [@chou1984quantitative] is as following:
+The median effect equation [Chou, T. C., & Talalay, P. (1984)](#chou1984quantitative) is as following:
 $$E=\frac{(d/D_{m})^m}{1+(d/D_{m})^m}$$
 where E is the induced effect of a drug with dose d whose median effective dose is $D_{m}$ and $m$ is a slope parameter. 
 
@@ -220,7 +225,7 @@ plotIAI(fit_fixedRay, type='IAI', mode='dose')
 plotIAI(fit_fixedRay, type='medianEffect') 
 ```
 
-In [@lee2007interaction], there is an example data (nl22B2) using grid design. Here we examine the estimate of IAI at different fixed ratios.
+In [Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007)](#lee2007interaction), there is an example data (nl22B2) using grid design. Here we examine the estimate of IAI at different fixed ratios.
 
 ```{r}
 data(nl22B2)	
@@ -260,7 +265,7 @@ package, typing
 in the R console will bring out the GUI for fitting dose-response curves. 
 Similarly,  typing 
 
-* **_drexplorerGUI_2()_**
+* **_drexplorerGUI_\2()_**
 
 will bring out the GUI for drug-drug interaction analysis. In both case, example
 data sets have been attached. 
@@ -272,7 +277,21 @@ sessionInfo()
 
 <!--     cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/for_vignettes; R0     -->       
 <!--     knitr::knit2html('drexplorer.Rmd')            -->
+<!--     rmarkdown::render('drexplorer.Rmd')            -->
 
-## References
+
+<a id="references"></a>
+
+## References 
+
+<a id="lee2007interaction"></a> 
+Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007). Interaction index and different methods for determining drug interaction in combination therapy. Journal of biopharmaceutical statistics, 17(3), 461-480.
+
+<a id="lee2009confidence"></a>
+Lee, J. J., & Kong, M. (2009). Confidence intervals of interaction index for assessing multiple drug interaction. Statistics in biopharmaceutical research, 1(1), 4-17.
+
+<a id="chou1984quantitative"></a>
+Chou, T. C., & Talalay, P. (1984). Quantitative analysis of dose-effect relationships: the combined effects of multiple drugs or enzyme inhibitors. Advances in enzyme regulation, 22, 27-55.
+
 
 

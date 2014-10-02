@@ -16,6 +16,7 @@ URL: https://github.com/nickytong/drexplorer
 License: GPL (>= 2)
 LazyData: true
 Depends: drc, DoseFinding, epiR, calibrate, methods, scales, RColorBrewer, stringr, plyr, fgui
+Imports: markdown
 Suggests: knitr
 NeedsCompilation: no
 VignetteBuilder: knitr
