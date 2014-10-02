@@ -35,7 +35,7 @@ drexplorerGUI_2()
 ```    
 
 ## User Mannual
-A [mannual](https://github.com/nickytong/drexplorer/blob/master/vignettes/drexplorer.pdf) is available. This is the same document as shown by typing the following command in R console.
+A [mannual](http://htmlpreview.github.com/?https://github.com/nickytong/drexplorer/blob/master/inst/doc/drexplorer.html) is available. This is the same document as shown by typing the following command in R console.
 
 ```r
 vignette('drexplorer')
