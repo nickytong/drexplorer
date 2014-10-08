@@ -1,45 +1,42 @@
 if(FALSE){
-# cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/; R --vanilla
-
-
-# cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/dre_roxygen/drexplorer; R0
-
-#library(roxygen2)
-#library(roxygen) # not working
-#roxygenize("drexplorer")
-
-#setwd('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/')
-
-
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorer.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorerAdded.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/aux_from_Extra.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/GUI_1_source_v2.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/GUI_2_source.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/interactionIndex.R'))
-
-
-setwd('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/')
-
+# cd ~/Backup/GitHub/; R --vanilla
+library(roxygen2)
 library(devtools)
+
+roxygenise("drexplorer")
 build('drexplorer')
 install('drexplorer')
 
-
-library(drexplorer)
-
-#res <- drexplorerGUI_2()
-
-res <- drexplorerGUI_1()
-
-
-
+##
 detach("package:drexplorer", unload=TRUE)
 library(drexplorer)
 
-
+build_win('drexplorer')
 load_all('drexplorer')
+
+##
+library(drexplorer)
+#res <- drexplorerGUI_2()
+res <- drexplorerGUI_1()
 }
+
+#'  Table III and IV published by Newman
+#'
+#' This dataset contains two 20-by-12 matrices corresponding to table III and table IV published by Newman, D. In
+#' particular, onePercentTab gives the quantiles at significance level of 0.01 and fivePercentTab gives the quantiles at significance level of 0.01.
+#' The degree of freedom f and sample size n are used as row and column names for each table.
+#'
+#'
+#' @format Each of the two objects (onePercentTab, fivePercentTab)
+#' is a matrix with 20 rows (degree of freedom f) and 12 columns (sample size n).
+#' @references Newman, D. (1939). The distribution of range in samples from a normal population, 
+#' expressed in terms of an independent estimate of standard deviation. Biometrika, 31(1/2), 20-30.
+#' @name NewmanTables
+#' @seealso \code{\link{NewmanTest}}
+NULL
+
+
+
 ### 0.9.4: add RSE in the model fitting
 ### 0.9.3: computeIC as Kevin's way. The original approach predicted from the model is still preserved. But default is to use interpolation. 
 ### name changed in S4 version: flagOutliers4SingleDose ---> NewmanTest
@@ -54,6 +51,36 @@ load_all('drexplorer')
 #		  recursive: whether to recursively identify outliers. Currently not implemented
 ### Output: 
 #		  indicator: a logic vector specifying if the corresponding point is flagged as outlier
+
+#' Identifying outliers with the range to standard deviation ratio statistic.
+#' 
+#' This function implements the method described 
+#'  by D. Newman, Biometrika, 1939 to identify outliers.
+#' 
+#' Given measurements from controls (no drug treated), we can compute the sample standard deviation (s). The range of responses from
+#' treated samples (w) can be computed for a given dose level. Assuming the controls to have the same variation as the drug treated case,
+#' the distribution of ratio statistic q=w/s can be derived and used to calculate if there is outliers in the treated responses as described 
+#' by D. Newman, Biometrika, 1939.  
+#' 
+#' Note that this function works for a single dose level. When multiple dose levels exist, one need to repeatedly call this function to identify
+#' outliers at each dose level or use the flagOutliers() function which is just a wrapper.
+#'
+#' @param ref a vector giving the reference values to estimate sigma
+#' @param obs a vector giving the observed values where potential outlier might exist
+#' @param alpha significance level. Only 0.01, 0.05 or 1 is allowed
+#' @param recursive whether to recursively identify outliers. Currently not implemented
+#' @return indicator a logical vector specifying if the corresponding point is flagged as outlier
+#' @export
+#' @references Newman, D. (1939). The distribution of range in samples from a normal population, 
+#' expressed in terms of an independent estimate of standard deviation. Biometrika, 31(1/2), 20-30.\url{http://www.jstor.org/stable/2334973}
+#' @seealso \code{\link{drOutlier}, \link{drModels}, \link{drFit}, \link{drFit-class}}
+#' @examples
+#' set.seed(1)
+#' x <- rnorm(10, 0, 1)
+#' y <- c(rnorm(5, 0, 1), rnorm(1, 0, 1)+4)
+#' # the last observation in y is an outlier
+#' NewmanTest(x, y, alpha=0.05)
+#'
 NewmanTest <- function(ref, obs, alpha=0.01, recursive=FALSE){
 	check.alpha(alpha)
 	indicator <- rep(FALSE, length(obs))
@@ -96,6 +123,22 @@ NewmanTest <- function(ref, obs, alpha=0.01, recursive=FALSE){
 #		  drMat: dose-response matrix. the first column being dosage and second column being response. controls are included by specifying dose=0
 ### Output: 
 #		  indicator: a vector with length nrow(drMat) specifying if a data point is outlier. Control points always have status FALSE
+#' Identifying outliers for dose-response data
+#'
+#' A wrapper for the NewmanTest() function. It repeatedly call NewmanTest() for each dose level. 
+#'
+#' @param drMat dose-response matrix. the first column being dosage and second column being response. 
+#'   controls are included by specifying dose=0
+#' @param alpha a scalar for significance level. Only 0.01, 0.05 and 1 are allowed. 
+#' 	alpha=1 is included for comparability issue. In this case,  no outliers will be identified. 
+#' @return indicator a vector with length nrow(drMat) specifying if a data point is outlier. 
+#'  Control points always have status FALSE
+#' @export
+#' @author Kevin R Coombes (\email{kcoombes@@mdanderson.org}), Pan Tong (\email{nickytong@@gmail.com})
+#' @seealso \code{\link{NewmanTest}, \link{drModels}, \link{drFit}, \link{drFit-class}}
+#' @examples
+#' data(ryegrass) # use the ryegrass data from drc package
+#' drOutlier(drMat=ryegrass[, c(2, 1)], alpha=0.05)
 drOutlier <- function(drMat, alpha=0.01) {
 	check.drMat(drMat)
 	dose <- drMat[, 1]
@@ -121,6 +164,60 @@ model.DoseFinding <- c('emax', 'sigEmax', 'exponential', 'quadratic',
 			   'linear', 'linlog', 'logistic')
 ### frequently used models for drug screening
 recommendedModels <- c('sigEmax', 'LL.4', 'LL.5', 'linear', 'linlog') # LL.3 might be better than linlog
+#' Show available dose-response models with direct support. 
+#' 
+#' This function shows available models to be passed to drFit function as modelName.
+#'
+#' @param return whether to return the models in a list
+#' @param verbose whether to print out the models
+#' @return Following is the print out:
+#'   Models implemented in drc package:
+#'   LL.2
+#'   LL.3
+#'   LL.3u
+#'   LL.4
+#'   LL.5
+#'   W1.2
+#'   W1.3
+#'   W1.4
+#'   W2.2
+#'   W2.3
+#'   W2.4
+#'   BC.4
+#'   BC.5
+#'   LL2.2
+#'   LL2.3
+#'   LL2.3u
+#'   LL2.4
+#'   LL2.5
+#'   AR.2
+#'   AR.3
+#'   MM.2
+#'   MM.3
+#'   Models implemented in DoseFinding package:
+#'   emax
+#'   emaxGrad
+#'   sigEmax
+#'   sigEmaxGrad
+#'   exponential
+#'   exponentialGrad
+#'   quadratic
+#'   quadraticGrad
+#'   betaMod
+#'   betaModGrad
+#'   linear
+#'   linearGrad
+#'   linlog
+#'   linlogGrad
+#'   logistic
+#'   logisticGrad
+#'   linInt
+#'   linIntGrad
+#'   More specific information can be found in the original packages.
+#' 
+#' @seealso \code{\link{NewmanTest}, \link{drOutlier}, \link{drFit}, \link{drFit-class}}
+#' @examples
+#' drModels()
 drModels <- function(return=FALSE, verbose=TRUE){
 	if(verbose) {
 	cat("Models implemented in drc package:\n")
@@ -148,7 +245,41 @@ getPackageName <- function(modelName){
 setOldClass("drc")
 setOldClass("DRMod")
 setClassUnion("drFit0", list("drc", "DRMod"))
+
+## this is wrong
+## plot method for drFit class.
+## @name plot
+## @rdname drFit-class
+setGeneric('plot', package='graphics' )
+
+
+## lines method for drFit class.
+## @name lines
+## @rdname drFit-class
+setGeneric('lines', package='graphics' )
+
+## predict method for drFit class.
+## @name predict
+## @rdname drFit-class
+setGeneric('predict', package='stats' )
+
 # info: a list element holding the model information, i.e. RSE
+#' Class \code{"drFit"}
+#'
+#' @name drFit-class
+#' @rdname drFit-class
+#' @exportClass drFit
+#' @section Creating Objects: 
+#' Although objects can be created directly using \code{new("drFit", ...)}, the most common usage will be to pass dose-response data to the \code{drFit} function.
+#'
+#' @slot fit A fit object by either drc or DoseFinding package. 
+#' @slot fitDat The actual data matrix (after excluding outliers) used to fit a dose-response model.
+#' @slot originalDat The original dose response data, a matrix.
+#' @slot alpha A scalar for significance level. This specifies the significance level to identify outliers
+#' @slot fitCtr A logical value specifying whether to include the control points into the model fitting. 
+#' @slot tag A string (either 'drc' or 'DoseFinding') tracking which package is used for model fitting. 
+#' @slot info A list that holds information related to the model, i.e. Residual Standard Error (rse).  
+#' @seealso \code{\link{drOutlier}, \link{drModels}, \link{drFit}, \link{drFit-class}}
 setClass('drFit', representation(fit='drFit0', fitDat='matrix', originalDat='matrix', alpha='numeric', fitCtr='logical', tag='character', info='list'))
 
 noNA <- function (dat) 
@@ -165,6 +296,32 @@ noNA <- function (dat)
 
 ## added residual standard error (RSE) on 2014/01/06 so that model selection by RSE can be implemented.
 ## notice: ******** drFit internally scales the response and fit the models on the scaled values. It is prohibited to scale the data before feeding to drexplorer!!!! *********
+#' Fit a dose-response model
+#' 
+#' This function can fit various dose-response models by specifying a model name and package source (either drc or DoseFinding).
+#'
+#' This is a wrapper to fit dose response models from drc and DoseFinding packages. 
+#' When fit the model, the response is internally scaled with mean response in control. Therefore, the fitted response is a ratio.
+#' In visualization, i.e. dose-response curve plotting, the dose is log10 transformed so that we can see the sigmoid curve.
+#' However, in computing IC50 and doing prediction, the dose is in original scale since the model is trained in the original scale of dose. Correspondingly, predicted
+#' response is also scaled response.
+#' When the user requires a log10 transformed dose, it is done after estimating dose in original scale through the computeIC() function.
+#'
+#' @param drMat dose-response matrix. the first column being dosage and second column being response. controls are included by specifying dose=0
+#' @param modelName a dose-response model. For available models to be specified, see drModels().
+#' @param alpha a scalar for significance level. This specifies the significance level to identify outliers which will be excluded from model fitting. To include
+#'  all data, set alpha=1. 
+#' @param fitCtr A logic vector specifying whether to include the control points into the model fitting.
+#' @return the function returns a drFit S4 object.
+#' @export
+#' @seealso \code{\link{NewmanTest}, \link{drOutlier}, \link{drModels}, \link{drFit-class}}
+#' @examples
+#' data(ryegrass) # use the ryegrass data from drc package
+#' # fit a sigmaEmax model without outlier removal. the controls are excluded from model fitting
+#' fit.LL.3 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "LL.3", alpha=0.01, fitCtr=FALSE)
+#' fit.LL.3u <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "LL.3u", alpha=0.01, fitCtr=FALSE)
+#' fit.sigEmax <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=0.01, fitCtr=FALSE)
+#' @author Kevin R Coombes (\email{kcoombes@@mdanderson.org}), Pan Tong (\email{nickytong@@gmail.com})
 drFit <- function(drMat, modelName = "sigEmax", alpha=0.01, fitCtr=FALSE){
 	package <- getPackageName(modelName) # which package source is the model implemented
 	indicator <- drOutlier(drMat=drMat, alpha=alpha) # for outlier removal
@@ -213,6 +370,17 @@ drFit <- function(drMat, modelName = "sigEmax", alpha=0.01, fitCtr=FALSE){
 ###
 ### when predicting, what dose is used, the original or the scaled dose?????
 ###	there is no scaling on dose, only scalin on value, only transformed. So this is a wrong question; but the answer is, the original dose is used!!!
+
+#browser()
+#### @rdname drFit-class
+#### @aliases predict,drFit-method
+#' predict method for drFit object
+#'
+#' @param object a drFit object
+#' @param newData a vector of dose levels to predict at. Default is to predict response at observed dose levels.
+#' @return a vector of predicted values
+#' @aliases predict,drFit-method
+#' @export 
 setMethod('predict', signature(object='drFit'),
           function(object, newData) {
 	if(missing(newData)) newData <- object@originalDat[, 1] 	
@@ -319,6 +487,21 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, ...) {
 #' This function uses rootfinding with fitted curve to compute IC values.
 #'
 #' @param drFit A drFit object as returned by drFit() function.
+#' @param percent the inhibition ratio to be searched against. A vector between 0 and 1.
+#' @param log.d whether to return log10(dose) or the raw dose. Default is set to TRUE.
+#' @param interpolation whether to use interpolation to estimate IC values. In this case, the computed IC values will be bound by the observed dosages.
+#' @param stepLen step length to construct equally spaced intervals during interpolation. Only used when interpolation=TRUE.
+#' @param lower lower bound in root search. Default is min(c(0, min(dose))) where dose is the observed dose levels from drFit@@originalDat.
+#' @param upper upper bound in root search. Default is max(dose)*1e6 where dose is the observed dose levels from drFit@@originalDat.
+#' @param ... other optimization parameters to be passed to uniroot().
+#' @return A named vector giving the IC values at specified percentiles.
+#' @seealso \code{\link{NewmanTest}, \link{drOutlier}, \link{drModels}, \link{drFit}}
+#' @author Kevin R Coombes (\email{kcoombes@@mdanderson.org}), Pan Tong (\email{nickytong@@gmail.com})
+#' @examples
+#' data(ryegrass) # use the ryegrass data from drc package
+#' fit.sigEmax <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=0.01, fitCtr=FALSE)
+#' computeIC(fit.sigEmax, percent=seq(0, 1, by=0.1), log.d=FALSE)	
+#' @export
 computeIC <- function(drFit, percent=0.50, log.d=TRUE, interpolation=TRUE, stepLen=NA, lower, upper, ...) {
 	#percent <- 1-percent ### convert to biological percent; updated on 2014/02/13---> not ok: the order is reversed!
 	if(interpolation==FALSE){
@@ -401,6 +584,31 @@ format_grid <- function(dose1, resolution=50, stepLen=NA){
 	xGrid <- sort(unique(c(xGrid, dose1)), decreasing=FALSE)
 	list(top=top, bot=bot, xGrid=xGrid, stepLen=stepLen)
 }
+
+
+#' plot method for drFit object
+#' 
+#' @param x a drFit object
+#' @param pchs pchs (a vector) specify symbols to show different data points. In particular,
+#'	pchs[1] is used to show regular points. pchs[2] is used to show outliers at 0.05 significance level and pchs[3] is used 
+#'	to show outliers at 0.01 significance level.  
+#' @param cols Similarly, cols[1] is used to color regular points, cols[2] to color outliers at 0.05 significance level and
+#'	cols[3] to color outliers at 0.01 significance level. 
+#' @param col color used to specify the appearance of fitted curve
+#' @param lwd line width used to specify the appearance of fitted curve
+#' @param addLegend whether to add legend indicating outlier status
+#' @param xlab x axis label
+#' @param ylab y axis label
+#' @param ylim y limit for display
+#' @param xlim x limit for display
+#' @param main main title 
+#' @param style when style='full', observed dose-response pairs are plotted including controls, fitted curve is superimposed and legend for outliers indicated;
+#'  when style='simple', only fitted curve is plotted (without dose-response points and of course, not outlier status). 
+#' @param bty bty passed to legend
+#' @param h horizontal line to add indicating e.g. IC50 (h=0.5)
+#' @param cex.main cex for main title
+#' @aliases plot,drFit-method
+#' @export 
 setMethod('plot', signature(x='drFit'),
           function(x, pchs=c(16, 17, 15), cols=c(1, 2, 3), col=4, lwd=2, addLegend=TRUE, xlab="Log10(Dose)", 
 		  ylab="Relative viability", ylim=NA, xlim=NA, main, style='full', bty='n', h=c(0.5), cex.main=1) {
@@ -470,7 +678,13 @@ setMethod('plot', signature(x='drFit'),
 	if(addLegend) legend("topright", c("okay", "5%", "1%"), col=cols, pch=pchs, bty=bty)
 	#browser()
 })
-	   
+## @rdname drFit-class
+#' lines method for drFit object
+#' @param x a drFit object	   
+#' @param col line color (also applies to data points if show_points is TRUE 	   
+#' @param pch pch for points	   
+#' @aliases lines,drFit-method
+#' @export 
 setMethod('lines', signature(x='drFit'),
     function(x, col=5, lwd=2, show_points=FALSE, pch=16) {
 	drMat <- x@originalDat

@@ -1,15 +1,23 @@
-#################### example usage of wrapper1() function
-
-
-## GUI_1_source _v2.R: add an option to apply frequently used dose-response models
-# to run:
 if(FALSE){
+# cd ~/Backup/GitHub/; R --vanilla
+library(roxygen2)
+library(devtools)
+
+roxygenise("drexplorer")
+build('drexplorer')
+install('drexplorer')
+
+##
+detach("package:drexplorer", unload=TRUE)
 library(drexplorer)
-library(drexplorerExtra)
-library(gdata)
-library(plyr)
- setwd('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/GUI')
- source('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/GUI/drexplorer/R/GUI_1_source_v2.R')
+
+build_win('drexplorer')
+load_all('drexplorer')
+
+##
+library(drexplorer)
+#res <- drexplorerGUI_2()
+res <- drexplorerGUI_1()
 }
 
 # common code in fgui
@@ -121,8 +129,12 @@ exampleDat_press <- function() {
   
 }
 
-library(fgui)
-
+#library(fgui)
+#' Launch Graphical User Interface (GUI) for dose response curve fitting
+#' 
+#' This function will launch GUI for curve fitting. The GUI works across different platforms, but the appearance would be slightly different.
+#'
+#' @export
 drexplorerGUI_1 <- function() {
   gui(GUI_1_main,
        argFilename=list(datFile=NULL),

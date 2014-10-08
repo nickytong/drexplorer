@@ -1,7 +1,7 @@
 #' Fit multiple dose response models for a single drug in a single cell line (One experiement unit)
 #' 
-#' the dose response mode is usually fitted with log10 dose as it is best fitted by the dose-response curves. The computed ICx
-#' values however, can be in either log10 scale or the original scale  
+#' the dose response mode is usually fitted with original dose (not log10 transformed). The computed ICx
+#' values however, can be in either log10 scale or the original scale.  
 #'
 #' @param dat a 2-column data frame with first column as dose and second column response. Controls are decided by dose=0
 #' @param drug drug for this analysis
@@ -13,7 +13,10 @@
 #' @param percentile IC percentile
 #' @param alpha outlier significance level
 #' @param fitCtr whether the model is fitted with control data
+#' @param interpolation whether calculate ICx through interpolation or through root finding. This parameter is passed to computeIC() function. When interpolation=TRUE,
+#' ICx value will be bounded by observed minimum and maximum dose; otherwise, ICx is calculated through root finding and thus can be outside this boundary (extrapolated). 
 #' @param plot whether to draw the dose response curve
+#' @param transparency a value between 0 and 1 specifying transparency through alpha blending; transparency=0 means totally transparent.
 #' @param ... additional parameters to plotOneExp()
 #' @return a list containing elements with:
 #'
@@ -156,7 +159,8 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 #' @param showTopN if specified show best N model in figure to avoid busy plotting; otherwise show all successful models. 
 #' @param lwd line width for the curves
 #' @export
-plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', h=c(0.3, 0.5, 0.7), tag=NA, main=NA, cex.main=1, xlab=NA, ylab=NA, ylim=NA, xlim=NA, show='both', cexLegend=NA, showTopN=NA, lwd=2){
+plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', h=c(0.3, 0.5, 0.7), tag=NA, main=NA, 
+	cex.main=1, xlab=NA, ylab=NA, ylim=NA, xlim=NA, show='both', cexLegend=NA, showTopN=NA, lwd=2){
 	#browser()
 	# calculate the actual color to be used
 	# notice cols here is different from fitRes$models: it ensures col_use have equal length as length(fitRes$models)

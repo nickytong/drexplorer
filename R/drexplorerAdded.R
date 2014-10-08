@@ -1,23 +1,20 @@
 if(FALSE){
-# cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/
-
-
-#library(roxygen2)
-#library(roxygen) # not working
-#roxygenize("drexplorer")
-
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorer.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorerAdded.R'))
-
+# cd ~/Backup/GitHub/; R --vanilla
+library(roxygen2)
 library(devtools)
+
+roxygenise("drexplorer")
 build('drexplorer')
 install('drexplorer')
 
+##
 detach("package:drexplorer", unload=TRUE)
 library(drexplorer)
-
-
+?drFit
+build_win('drexplorer')
 load_all('drexplorer')
+
+##
 }
 
 #' Calculates Concordance Correlation Coefficient (CCC) to access reproducibility
@@ -157,13 +154,14 @@ plotCCC <- function(x, y, xlab=NA, ylab=NA, tag='', col_legend='red', pch=1, mai
 
 ### this function is designed to split the data as in this project. It does not work on the drexplorer template data
 ### major limit: only allows split by one column: thus it only works for data (3 columns: Cellline, Dose, OD) with one drug and multiple cell lines. 
-#' Split a drug-response data for the template from Suk Young
+#' Split a drug-response data  
 #' 
-#' This split the data into a list so that each element is a drug-Cell Line combination for further analysis
+#' This split the data into a list so that each element is a list. This is useful if the data contains multiple cell lines or multiple drugs for the same cell line
+#' Currently it only allows splitting by one variable (one column). If data contains both multiple cell lines and multiple drugs, a customized function needs to be written for data formatting.
 #' 
 #' @param dat input data with multiple cell lines for one drug
 #' @param colNames colNames to name selected columns
-#' @param by string for the colName used for split
+#' @param by string for the colName (just one column allowed) used for split
 #' @param minReplicate if a subset does not have nrow exceeding this, throw an error
 #' @param verbose whether to produce warning message
 #' @return  a list of the split data frames

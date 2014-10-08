@@ -1,29 +1,3 @@
-if(FALSE){
-# to run:
-# 
-setwd('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/')
-
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorer.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorerAdded.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/aux_from_Extra.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/GUI_1_source_v2.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/interactionIndex.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/GUI_2_source.R'))
-
-res <- drexplorerGUI_2()
-
-library(devtools)
-build('drexplorer')
-install('drexplorer')
-
-detach("package:drexplorer", unload=TRUE)
-library(drexplorer)
-
-
-load_all('../drexplorer')
-
-}
-
 # setup output dir
 set_dirOutput2_ <- function(){
   # set output dir according to input data
@@ -159,7 +133,12 @@ exampleDat_nl22B2_press <- function() {
 }
 
 #library(fgui)
-
+#' Launch Graphical User Interface (GUI) for drug interaction (IAI) analysis
+#' 
+#' This function will launch GUI for computing Interaction Index (IAI) in fixed ratio design. 
+#' The GUI works across different platforms, but the appearance would be slightly different.
+#'
+#' @export
 drexplorerGUI_2 <- function() {
   gui(GUI_2_main,
        argFilename=list(datFile=NULL),

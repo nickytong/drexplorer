@@ -1,4 +1,9 @@
 ----------------------------------------------------------------
+drexplorer 1.0.1
+----------------------------------------------------------------
+fully roxygen compatible
+
+----------------------------------------------------------------
 drexplorer 0.9.7
 ----------------------------------------------------------------
 (1) Some models cannot be fitted possibly because they have an different interface (i.e. require more parameters).

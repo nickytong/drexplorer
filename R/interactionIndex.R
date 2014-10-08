@@ -1,29 +1,20 @@
 if(FALSE){
-setwd('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/')
+# cd ~/Backup/GitHub/; R --vanilla
+library(roxygen2)
 library(devtools)
+
+roxygenise("drexplorer")
 build('drexplorer')
 install('drexplorer')
 
+##
 detach("package:drexplorer", unload=TRUE)
 library(drexplorer)
 
-load_all('../drexplorer')
-load_all('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer')
-
+build_win('drexplorer')
+load_all('drexplorer')
 
 ##
-detach("package:drexplorerExtra", unload=TRUE)
-library(drexplorerExtra)
-
-
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorer.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/drexplorerAdded.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/aux_from_Extra.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/GUI_1_source_v2.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/interactionIndex.R'))
-source(file.path('/data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/drexplorer/R/GUI_2_source.R'))
-
-
 }
 
 #'  The drug combination data between SCH66336 and 4-HPR. This is an all-possible combination design.
@@ -108,8 +99,9 @@ detect_ray_design <- function(d1, d2, e, tol=0.001, d2.d1.force=NA){
 #res_design <- detect_ray_design(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1)
 #detect_ray_design(d1=dose1, d2=dose2, e=fa)
 
-
-# fit median-effect model for 2-drug combination with a fixed ratio desgin
+#### todo: deal with all-possible combination case -- it is not solved completely in Lee 2009 paper. 
+#### mostly borrowed from chou8491.SSC; but also borrowed from CI_IIV2.SSC
+#' fit median-effect model for 2-drug combination with a fixed ratio desgin
 #'
 #' notice that the median-effect model is a special case of the sigma Emax model;
 #' 3 linear models are fitted; fixed ratio thus is required.
@@ -123,9 +115,6 @@ detect_ray_design <- function(d1, d2, e, tol=0.001, d2.d1.force=NA){
 #' @param base base of logarithm; disabled since the dose-response curve estimation also needs transformation
 #' @return a list
 #' @export
-#### todo: deal with all-possible combination case -- it is not solved completely in Lee 2009 paper. 
-#### mostly borrowed from chou8491.SSC; but also borrowed from CI_IIV2.SSC
-
 fit_median_efect <- function(d1, d2, e, name1='Drug A', name2='Drug B', d2.d1, base=exp(1)){
 	dose1 <- d1; dose2 <- d2; fa <- e
 	#browser()
@@ -231,12 +220,13 @@ plot_median_effect <- function(medianEffect, type=c('medianEffect', 'doseRespons
 #'
 #' Two papers have been published by Lee et al, one in 2007 (Lee2007) and on in 2009 (Lee2009). The Lee2007 paper 
 #' described five methods to assess interaction: (1) Lowewe additivity model using interaction index (IAI) (2) Model of Greco et al 1990.
-#' This approach uses $\alpha$ as the metric and it can be related to IAI (3) Model of Machado and Robinson which uses a metric denoted
-#' as $\eta$ (4) Model of Plummer and Short which can also be linked to IAI through the parameter $\beta_4$ (5) Model of
-#' Carter et al that can be linked to IAI through the parameter $\beta_{12}$. For more details of these models, please refer to Lee2007.
+#' This approach uses \deqn{\alpha}{alpha} as the metric and it can be related to IAI (3) Model of Machado and Robinson which uses a metric denoted
+#' as \deqn{\eta}{eta} (4) Model of Plummer and Short which can also be linked to IAI through the parameter \deqn{\beta_4}{beta_4} (5) Model of
+#' Carter et al that can be linked to IAI through the parameter \deqn{\beta_{12}}{beta_12}. For more details of these models, please refer to Lee2007.
 #' 
 #' The Lee2009 paper provided generalization of IAI to multiple drugs using Lowewe additivity model and assumption of Chou and Talalay's median effect
-#' equation. The Chou and Talalay's median effect equation can be expressed as: log(E/(1-E))=m(log d - log Dm) where E is the effect at dose d for a
+#' equation. The Chou and Talalay's median effect equation can be expressed as: \deqn{log(E/(1-E))=m(log d - log Dm)}{log(E/(1-E))=m(log d - log Dm)} 
+#' where E is the effect at dose d for a
 #' compound whose median effective dose. 
 #'
 #' Some notes about experiment design. Usually the data is either fixed ratio design (ray design) or grid design which means all-possible combination of drug concentrations
