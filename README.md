@@ -12,7 +12,7 @@ The **drexplorer** R package is developed to facilitate the analysis of dose-res
 
 ## Installation
 
-The **devtools** package is used to install R packages hosted on Github. To install **drexplorer**, type the following commands in the R console:
+The **devtools** package (http://cran.r-project.org/web/packages/devtools/index.html) is used to install R packages hosted on Github. To install **drexplorer**, type the following commands in the R console:
 
 ```r
     library(devtools)
@@ -43,4 +43,4 @@ vignette('drexplorer')
 
 ## Build Status
 [Travis
-CI](http://yihui.name/en/2013/04/travis-ci-general-purpose/) is used to check and build the latest version of **drexplorer**, similar to what CRAN does. The current status icon can be found under the title of this page.  
+CI](https://github.com/craigcitro/r-travis) is used to check and build the latest version of **drexplorer**, similar to what CRAN does. The current status icon can be found under the title of this page.  
