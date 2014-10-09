@@ -17,8 +17,10 @@
 #' @importFrom epiR epi.ccc
 #' @import stringr
 #' @import fgui
+#' @importFrom drc drm LL.2 LL.3 LL.3u LL.4 LL.5 W1.2 W1.3 W1.4 W2.2 W2.3 W2.4 BC.4 BC.5 LL2.2 LL2.3 LL2.3u LL2.4 LL2.5 AR.2 AR.3 
+#' @importFrom DoseFinding fitMod emax sigEmax exponential quadratic linear linlog logistic 
 NULL
 
 ## not working
-# @importFrom drc drm summary predict
-# @importFrom DoseFinding fitMod
+# @importFrom drc drm LL.2 LL.3 LL.3u LL.4 LL.5 W1.2 W1.3 W1.4 W2.2 W2.3 W2.4 BC.4 BC.5 LL2.2 LL2.3 LL2.3u LL2.4 LL2.5 AR.2 AR.3 
+# @importFrom DoseFinding fitMod emax sigEmax exponential quadratic linear linlog logistic 

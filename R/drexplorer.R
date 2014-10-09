@@ -394,7 +394,8 @@ setMethod('predict', signature(object='drFit'),
 	}
 	if(tag=="DoseFinding"){ # using model fitted from DoseFinding
 		modelName <- attributes(fitObj)$model
-		f <- get(modelName, pos=which(search() == "package:DoseFinding")) # function name, i.e. sigEmax
+		#f <- get(modelName, pos=which(search() == "package:DoseFinding")) # function name, i.e. sigEmax
+		f <- get(modelName) # function name, i.e. sigEmax
 		coy <- as.list(fitObj$coefs)
        coy$dose <- newData
 		y <- do.call(f, coy)
