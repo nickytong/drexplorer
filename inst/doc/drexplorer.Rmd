@@ -49,8 +49,8 @@ library(drexplorer)
 At dose=3.75 and significance level 0.05, we find there is one outlier identified:
 
 ```{r}
-library(drc)
-data(ryegrass)
+#library(drc)
+data(ryegrass, package='drc')
 dose <- ryegrass[, 2]
 response <- ryegrass[, 1]
 ## potential outlier at dose 3.75
