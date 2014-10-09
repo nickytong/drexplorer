@@ -30,7 +30,7 @@ response is also scaled response.
 When the user requires a log10 transformed dose, it is done after estimating dose in original scale through the computeIC() function.
 }
 \examples{
-data(ryegrass) # use the ryegrass data from drc package
+data(ryegrass, package='drc') # use the ryegrass data from drc package
 # fit a sigmaEmax model without outlier removal. the controls are excluded from model fitting
 fit.LL.3 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "LL.3", alpha=0.01, fitCtr=FALSE)
 fit.LL.3u <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "LL.3u", alpha=0.01, fitCtr=FALSE)

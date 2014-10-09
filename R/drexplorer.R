@@ -138,7 +138,7 @@ NewmanTest <- function(ref, obs, alpha=0.01, recursive=FALSE){
 #' @author Kevin R Coombes (\email{kcoombes@@mdanderson.org}), Pan Tong (\email{nickytong@@gmail.com})
 #' @seealso \code{\link{NewmanTest}, \link{drModels}, \link{drFit}, \link{drFit-class}}
 #' @examples
-#' data(ryegrass) # use the ryegrass data from drc package
+#' data(ryegrass, package='drc') # use the ryegrass data from drc package
 #' drOutlier(drMat=ryegrass[, c(2, 1)], alpha=0.05)
 drOutlier <- function(drMat, alpha=0.01) {
 	check.drMat(drMat)
@@ -318,7 +318,7 @@ noNA <- function (dat)
 #' @export
 #' @seealso \code{\link{NewmanTest}, \link{drOutlier}, \link{drModels}, \link{drFit-class}}
 #' @examples
-#' data(ryegrass) # use the ryegrass data from drc package
+#' data(ryegrass, package='drc') # use the ryegrass data from drc package
 #' # fit a sigmaEmax model without outlier removal. the controls are excluded from model fitting
 #' fit.LL.3 <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "LL.3", alpha=0.01, fitCtr=FALSE)
 #' fit.LL.3u <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "LL.3u", alpha=0.01, fitCtr=FALSE)
@@ -351,14 +351,14 @@ drFit <- function(drMat, modelName = "sigEmax", alpha=0.01, fitCtr=FALSE){
 	rse <- NA
 	if(package=='drc'){
 		f <- get(modelName) ## i.e. the LL.3 or LL.3u function from drc package
-        model <- try(drm(response ~ dose, data=dat, fct=f())) ## pass f to drm in the drc package to fit dose-response curve
+        model <- try(drc::drm(response ~ dose, data=dat, fct=f())) ## pass f to drm in the drc package to fit dose-response curve
         if(inherits(model, "try-error")) {
 			stop(cat("Model", modelName, "failed\n"))
         } else {
 			rse <- summary(model)$rseMat[1]
 		}
 	} else {
-		model <- try(fitMod('dose', 'response', data=dat, model=modelName))
+		model <- try(DoseFinding::fitMod('dose', 'response', data=dat, model=modelName))
         if(inherits(model, "try-error")) {
 			stop(cat("Model", modelName, "failed\n"))
         } else {

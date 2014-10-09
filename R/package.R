@@ -19,5 +19,6 @@
 #' @import fgui
 NULL
 
-#
-#
+## not working
+# @importFrom drc drm summary predict
+# @importFrom DoseFinding fitMod

@@ -20,7 +20,7 @@ indicator a vector with length nrow(drMat) specifying if a data point is outlier
 A wrapper for the NewmanTest() function. It repeatedly call NewmanTest() for each dose level.
 }
 \examples{
-data(ryegrass) # use the ryegrass data from drc package
+data(ryegrass, package='drc') # use the ryegrass data from drc package
 drOutlier(drMat=ryegrass[, c(2, 1)], alpha=0.05)
 }
 \author{
