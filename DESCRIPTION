@@ -22,7 +22,10 @@ Depends:
 Imports:
     markdown,
     fgui,
-    stringr
+    stringr,
+	epiR,
+	RColorBrewer,
+	scales
 Suggests:
     knitr
 NeedsCompilation: no
