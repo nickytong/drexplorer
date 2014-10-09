@@ -164,7 +164,16 @@ model.drc <- c('LL.2', 'LL.3', 'LL.3u', 'LL.4', 'LL.5', 'W1.2', 'W1.3', 'W1.4', 
 model.DoseFinding <- c('emax', 'sigEmax', 'exponential', 'quadratic',
 			   'linear', 'linlog', 'logistic')
 ### frequently used models for drug screening
-recommendedModels <- c('sigEmax', 'LL.4', 'LL.5', 'linear', 'linlog') # LL.3 might be better than linlog
+
+#' frequently used models
+#'
+#' this function returns frequently used dose-response models for anti-cancer drug screening.
+#'
+#' @export
+recommendedModels <- function(){
+	c('sigEmax', 'LL.4', 'LL.5', 'linear', 'linlog') # LL.3 might be better than linlog
+}
+
 #' Show available dose-response models with direct support. 
 #' 
 #' This function shows available models to be passed to drFit function as modelName.
@@ -228,10 +237,10 @@ drModels <- function(return=FALSE, verbose=TRUE){
 	cat(model.DoseFinding, sep='\n')
 	cat('More specific information can be found in the original packages.\n')
 	cat("Models frequently used in drug screening experiments:\n")
-	cat(recommendedModels, sep='\n')
+	cat(recommendedModels(), sep='\n')
 	}
 	if(return){
-		return(list(drc=model.drc, doseFinding=model.DoseFinding, recommendedModels=recommendedModels))
+		return(list(drc=model.drc, doseFinding=model.DoseFinding, recommendedModels=recommendedModels()))
 	}
 }	
 getPackageName <- function(modelName){
