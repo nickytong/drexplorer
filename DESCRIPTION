@@ -25,9 +25,10 @@ Imports:
     stringr,
 	epiR,
 	RColorBrewer,
-	scales,
-	rmarkdown
+	scales
 Suggests:
-    knitr
+    knitr,
+	rmarkdown
+
 NeedsCompilation: no
 VignetteBuilder: knitr
