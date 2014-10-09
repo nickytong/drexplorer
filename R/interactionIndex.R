@@ -160,6 +160,7 @@ fit_median_efect <- function(d1, d2, e, name1='Drug A', name2='Drug B', d2.d1, b
 #' 
 #' @param medianEffect the fitted result by fit_median_efect()
 #' @param type type of plot, options are from c('medianEffect', 'doseResponseCurve', 'contour')
+#' @param contour.level levels (between 0 and 1 representing different response values) to draw contour plot
 plot_median_effect <- function(medianEffect, type=c('medianEffect', 'doseResponseCurve', 'contour'), contour.level=(1:9)/10){
 	if(type=='medianEffect'){
 	#browser()
@@ -237,6 +238,8 @@ plot_median_effect <- function(medianEffect, type=c('medianEffect', 'doseRespons
 #' @param d2 dose for drug 2
 #' @param e corresponding response in the range [0, 1]
 #' @param E a vector of responses (between 0 and 1) where IAI and confidence interval are to be computed from.                                           
+#' @param name1 name of drug 1                               
+#' @param name2 name of drug 2                               
 #' @param alpha significance level of confidence interval             
 #' @param d2.d1.force a ratio passed to detect_ray_design() function so as to specify a fixed ratio for grid design   
 #' @return a data frame with columns IAI, IAI.low, IAI.up, E, dx1 (corresponding dose of drug 1), dx2 (corresponding dose of drug 1), 
@@ -278,6 +281,7 @@ fitIAI <- function(d1, d2, e, E=seq(0.05, 0.95, 0.005), name1='Drug A', name2='D
 #' @param fit the fitted result from fitIAI()
 #' @param type type of plot from c('IAI', 'medianEffect', 'doseResponseCurve', 'contour')
 #' @param contour.level contour level. only effective if type='contour'
+#' @param ylim y axis limit
 #' @param mode specify if to plot against response, dose or both. only effective if type=='IAI'. can be either 'response', 'dose', or 'both'
 #' @export
 plotIAI <- function(fit, type=c('IAI', 'medianEffect', 'doseResponseCurve', 'contour'), contour.level=(1:9)/10, ylim=NULL, mode='both'){
@@ -371,7 +375,8 @@ plotIAI <- function(fit, type=c('IAI', 'medianEffect', 'doseResponseCurve', 'con
 # originally called: CI.delta from CI_IIV2.SSC                          
 #
 #
-#' truncate effect so that it will never be 0 or 1
+# truncate effect so that it will never be 0 or 1
+
 truncate_effect <- function(e, min=1e-4, max=1-1e-4){
 	e[e<min] <- min
 	e[e>max] <- max
@@ -396,6 +401,10 @@ truncate_effect <- function(e, min=1e-4, max=1-1e-4){
 #' @param d2.d1 the ratio of the ray design. This is the fixed ratio of dose 2 divided by dose 1
 #' @param E a vector of responses (between 0 and 1) where IAI and confidence interval are to be computed from.                                           
 #' @param alpha significance level of confidence interval             
+#' @param min response values close to 0 and 1 will lead to extreme values when logit transformation is applied. min is used to truncate the response value so that values less than min are
+#' truncated at min          
+#' @param max response values close to 0 and 1 will lead to extreme values when logit transformation is applied. max is used to truncate the response value so that values larger than max are
+#' truncated at max          
 #' @return a data frame with columns IAI, IAI.low, IAI.up, E, dx1 (corresponding dose of drug 1), dx2 (corresponding dose of drug 1), 
 #'  dx12 (corresponding dose of combined drug, same as definition of d12)
 #' @references Lee, J. J., & Kong, M. (2009). Confidence intervals 

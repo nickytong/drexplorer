@@ -118,7 +118,7 @@ datFile_press <- function()
 exampleDat_press <- function() {
   # set output dir according to input data
   dirOutput <- set_dirOutput_()
-  data(ryegrass)
+  # LazyData true #data(ryegrass)
   dose <- ryegrass[, 2]
   response <- ryegrass[, 1]
   ryegrass_dat <- data.frame(dose=dose, response=response)

@@ -29,10 +29,13 @@ load_all('drexplorer')
 #' @param ylab ylab
 #' @param maskBeyondLim whether mask values beyond xlim (for x) or ylim (for y) when xlim and ylim is specified. Default is FALSE so that even xlim ylim specified, CCC will not be affected
 #' @param tag add a tag
+#' @param col_legend color for legend text
 #' @param pch pch of the points
 #' @param main main title 
 #' @param cex for the dots 
 #' @param plot whether draw a figure
+#' @param ylim y axis limit 
+#' @param xlim x axis limit 
 #' @param plotOutlier logical whether add an outlier plot comparing Diff vs Mean plot and related statistics
 #' @param sampleName symbols of the text to be shown in outlier plot
 #' @param alpha_outlier alpha to call outliers based on the observed differences assuming from Normal(mean_diff, sd_diff)
@@ -40,7 +43,8 @@ load_all('drexplorer')
 #'			ccc_lo and ccc_hi represent 95% confidence interval for CCC. Cb for the bias correction term satisfying CCC=corr*Cb where corr is the
 #' 			Pearson correlation
 #' @export
-plotCCC <- function(x, y, xlab=NA, ylab=NA, tag='', col_legend='red', pch=1, main=NA, cex=2, plot=TRUE, ylim=NA, xlim=NA, maskBeyondLim=FALSE, plotOutlier=FALSE, sampleName=NA, alpha_outlier=0.01){
+plotCCC <- function(x, y, xlab=NA, ylab=NA, tag='', col_legend='red', pch=1, main=NA, cex=2, plot=TRUE, ylim=NA, xlim=NA, maskBeyondLim=FALSE, 
+	plotOutlier=FALSE, sampleName=NA, alpha_outlier=0.01){
 	#require(epiR)
 	#require(calibrate) # text around points in base graphics
 	if(is.na(xlab)) xlab <- deparse(substitute(x)) # should happen at very beginning

@@ -125,7 +125,7 @@ exampleDat_UMSCC22B_press <- function() {
 exampleDat_nl22B2_press <- function() {
   # set output dir according to input data
   dirOutput <- set_dirOutput2_()
-  data(nl22B2)
+  #lazyData# data(nl22B2)
   ff <- file.path(dirOutput, 'nl22B2.csv')
   write.csv(nl22B2, file=ff, row.names=F)
   guiSetValue("datFile", ff)

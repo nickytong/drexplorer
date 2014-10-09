@@ -141,7 +141,8 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 #'
 #' @param fitRes return value from fitOneExp()
 #' @param ind2plot index for the models that will be plotted; default is NA which leads to all curves available; when specified as 'best', the best model is selected 
-#' @param col color for the lines 
+#' @param cols color for the lines. If cols is of length 1, then all lines (representing different models) have the same color as specified; if cols has a length larger than 1,
+#'  the function further checks if this length equals the number of fitted models. If this is the case, cols specifies colors for all models. Otherwise, default color is used. 
 #' @param type  either plot or line; when specified as line, it will only adds to an existing figure; When length(ind2plot)>1, type will be reset to plot
 #' 	which means the first curve will be made with plot() and additional ones with lines()
 #' @param h horizontal line added to the figure, i.e. indicating IC50, IC70

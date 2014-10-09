@@ -32,6 +32,7 @@ res <- drexplorerGUI_1()
 #' @references Newman, D. (1939). The distribution of range in samples from a normal population, 
 #' expressed in terms of an independent estimate of standard deviation. Biometrika, 31(1/2), 20-30.
 #' @name NewmanTables
+#' @aliases onePercentTab,fivePercentTab
 #' @seealso \code{\link{NewmanTest}}
 NULL
 
@@ -218,6 +219,7 @@ recommendedModels <- c('sigEmax', 'LL.4', 'LL.5', 'linear', 'linlog') # LL.3 mig
 #' @seealso \code{\link{NewmanTest}, \link{drOutlier}, \link{drFit}, \link{drFit-class}}
 #' @examples
 #' drModels()
+#' @export
 drModels <- function(return=FALSE, verbose=TRUE){
 	if(verbose) {
 	cat("Models implemented in drc package:\n")
@@ -682,6 +684,8 @@ setMethod('plot', signature(x='drFit'),
 #' lines method for drFit object
 #' @param x a drFit object	   
 #' @param col line color (also applies to data points if show_points is TRUE 	   
+#' @param lwd line width  
+#' @param show_points whether to add points for dose-response paires (dose not 0) 
 #' @param pch pch for points	   
 #' @aliases lines,drFit-method
 #' @export 
