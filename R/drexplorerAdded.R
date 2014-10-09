@@ -201,7 +201,7 @@ datSplit <- function(dat, colNames, by, minReplicate=3, verbose=TRUE){
 }
 
 ############### wrapper
-#' read data; if extension is csv, treat it as csv; otherwise, treat it as tab delimilated file through read.delim
+# read data; if extension is csv, treat it as csv; otherwise, treat it as tab delimilated file through read.delim
 loadData <- function(filepath){
 	ext <- tolower(tools::file_ext(filepath))
 	if(ext=='csv'){

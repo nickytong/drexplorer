@@ -115,7 +115,7 @@ datFile_press2 <- function()
 exampleDat_UMSCC22B_press <- function() {
   # set output dir according to input data
   dirOutput <- set_dirOutput2_()
-  data(UMSCC22B)
+  #data(UMSCC22B)
   ff <- file.path(dirOutput, 'UMSCC22B.csv')
   write.csv(UMSCC22B, file=ff, row.names=F)
   guiSetValue("datFile", ff)

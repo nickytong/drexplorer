@@ -19,6 +19,7 @@ Depends:
     R (>= 3.0.0)
 Imports:
     markdown,
+	methods,
     fgui,
     stringr,
     epiR,

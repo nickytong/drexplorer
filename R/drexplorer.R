@@ -501,7 +501,7 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, ...) {
 #' @seealso \code{\link{NewmanTest}, \link{drOutlier}, \link{drModels}, \link{drFit}}
 #' @author Kevin R Coombes (\email{kcoombes@@mdanderson.org}), Pan Tong (\email{nickytong@@gmail.com})
 #' @examples
-#' data(ryegrass) # use the ryegrass data from drc package
+#' data(ryegrass, package='drc') # use the ryegrass data from drc package
 #' fit.sigEmax <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=0.01, fitCtr=FALSE)
 #' computeIC(fit.sigEmax, percent=seq(0, 1, by=0.1), log.d=FALSE)	
 #' @export
