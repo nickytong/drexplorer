@@ -12,7 +12,7 @@ The **drexplorer** R package is developed to facilitate the analysis of dose-res
 
 ## Installation
 
-The **devtools** package (http://cran.r-project.org/web/packages/devtools/index.html) is used to install R packages hosted on Github. To install **drexplorer**, type the following commands in the R console:
+The [**devtools** package](http://cran.r-project.org/web/packages/devtools/index.html) is used to install R packages hosted on Github. To install **drexplorer**, type the following commands in the R console:
 
 ```r
     library(devtools)
