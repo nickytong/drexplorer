@@ -25,7 +25,8 @@ Imports:
     stringr,
 	epiR,
 	RColorBrewer,
-	scales
+	scales,
+	rmarkdown
 Suggests:
     knitr
 NeedsCompilation: no
