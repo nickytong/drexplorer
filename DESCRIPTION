@@ -29,5 +29,5 @@ Imports:
 Suggests:
     knitr,
     rmarkdown
-NeedsCompilation: NA
-VignetteBuilder: NA
+NeedsCompilation: no
+VignetteBuilder: knitr
