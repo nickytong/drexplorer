@@ -30,7 +30,7 @@ A named vector giving the IC values at specified percentiles.
 This function uses rootfinding with fitted curve to compute IC values.
 }
 \examples{
-data(ryegrass) # use the ryegrass data from drc package
+data(ryegrass, package='drc') # use the ryegrass data from drc package
 fit.sigEmax <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=0.01, fitCtr=FALSE)
 computeIC(fit.sigEmax, percent=seq(0, 1, by=0.1), log.d=FALSE)
 }
