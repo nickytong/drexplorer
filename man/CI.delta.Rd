@@ -24,6 +24,12 @@ CI.delta(d1, e1, d2, e2, d12, e12, d2.d1, E, alpha = 0.05, min = 0.02,
 \item{E}{a vector of responses (between 0 and 1) where IAI and confidence interval are to be computed from.}
 
 \item{alpha}{significance level of confidence interval}
+
+\item{min}{response values close to 0 and 1 will lead to extreme values when logit transformation is applied. min is used to truncate the response value so that values less than min are
+truncated at min}
+
+\item{max}{response values close to 0 and 1 will lead to extreme values when logit transformation is applied. max is used to truncate the response value so that values larger than max are
+truncated at max}
 }
 \value{
 a data frame with columns IAI, IAI.low, IAI.up, E, dx1 (corresponding dose of drug 1), dx2 (corresponding dose of drug 1),

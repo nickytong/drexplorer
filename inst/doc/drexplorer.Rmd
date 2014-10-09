@@ -265,7 +265,7 @@ package, typing
 in the R console will bring out the GUI for fitting dose-response curves. 
 Similarly,  typing 
 
-* **_drexplorerGUI_\2()_**
+* **_drexplorerGUI\_2()_**
 
 will bring out the GUI for drug-drug interaction analysis. In both case, example
 data sets have been attached. 

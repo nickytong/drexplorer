@@ -6,10 +6,12 @@ library(devtools)
 roxygenise("drexplorer")
 build('drexplorer')
 install('drexplorer')
+vignette('drexplorer')
 
 ##
 detach("package:drexplorer", unload=TRUE)
 library(drexplorer)
+vignette('drexplorer')
 ?drFit
 build_win('drexplorer')
 load_all('drexplorer')

@@ -19,6 +19,8 @@ plotCCC(x, y, xlab = NA, ylab = NA, tag = "", col_legend = "red",
 
 \item{tag}{add a tag}
 
+\item{col_legend}{color for legend text}
+
 \item{pch}{pch of the points}
 
 \item{main}{main title}
@@ -26,6 +28,10 @@ plotCCC(x, y, xlab = NA, ylab = NA, tag = "", col_legend = "red",
 \item{cex}{for the dots}
 
 \item{plot}{whether draw a figure}
+
+\item{ylim}{y axis limit}
+
+\item{xlim}{x axis limit}
 
 \item{maskBeyondLim}{whether mask values beyond xlim (for x) or ylim (for y) when xlim and ylim is specified. Default is FALSE so that even xlim ylim specified, CCC will not be affected}
 

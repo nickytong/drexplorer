@@ -13,6 +13,8 @@ plotIAI(fit, type = c("IAI", "medianEffect", "doseResponseCurve", "contour"),
 
 \item{contour.level}{contour level. only effective if type='contour'}
 
+\item{ylim}{y axis limit}
+
 \item{mode}{specify if to plot against response, dose or both. only effective if type=='IAI'. can be either 'response', 'dose', or 'both'}
 }
 \description{

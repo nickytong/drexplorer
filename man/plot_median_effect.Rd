@@ -10,6 +10,8 @@ plot_median_effect(medianEffect, type = c("medianEffect", "doseResponseCurve",
 \item{medianEffect}{the fitted result by fit_median_efect()}
 
 \item{type}{type of plot, options are from c('medianEffect', 'doseResponseCurve', 'contour')}
+
+\item{contour.level}{levels (between 0 and 1 representing different response values) to draw contour plot}
 }
 \description{
 generate plot for the fit from median-effect model

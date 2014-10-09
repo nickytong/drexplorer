@@ -52,9 +52,9 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 	require(drexplorer)
 	if(is.na(cols[1])){ # use default colors when not specified or inappripriate
 		if(length(models)<=9){
-			cols <- scales::alpha(brewer.pal(9, "Set1")[seq_along(models)], alpha=transparency)
+			cols <- alpha(brewer.pal(9, "Set1")[seq_along(models)], alpha=transparency)
 		} else {
-			cols <- scales::alpha(rainbow(length(models)), alpha=transparency)
+			cols <- alpha(rainbow(length(models)), alpha=transparency)
 		}
 	}
 	if(length(cols)!=length(models) & !is.na(cols[1])) cols <- rep(cols[1], length(models))

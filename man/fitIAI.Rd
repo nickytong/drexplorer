@@ -15,6 +15,10 @@ fitIAI(d1, d2, e, E = seq(0.05, 0.95, 0.005), name1 = "Drug A",
 
 \item{E}{a vector of responses (between 0 and 1) where IAI and confidence interval are to be computed from.}
 
+\item{name1}{name of drug 1}
+
+\item{name2}{name of drug 2}
+
 \item{alpha}{significance level of confidence interval}
 
 \item{d2.d1.force}{a ratio passed to detect_ray_design() function so as to specify a fixed ratio for grid design}

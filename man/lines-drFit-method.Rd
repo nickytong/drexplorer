@@ -12,6 +12,10 @@
 
 \item{col}{line color (also applies to data points if show_points is TRUE}
 
+\item{lwd}{line width}
+
+\item{show_points}{whether to add points for dose-response paires (dose not 0)}
+
 \item{pch}{pch for points}
 }
 \description{

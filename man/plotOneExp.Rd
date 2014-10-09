@@ -13,6 +13,9 @@ plotOneExp(fitRes, ind2plot = NA, cols = NA, type = "plot",
 
 \item{ind2plot}{index for the models that will be plotted; default is NA which leads to all curves available; when specified as 'best', the best model is selected}
 
+\item{cols}{color for the lines. If cols is of length 1, then all lines (representing different models) have the same color as specified; if cols has a length larger than 1,
+the function further checks if this length equals the number of fitted models. If this is the case, cols specifies colors for all models. Otherwise, default color is used.}
+
 \item{type}{either plot or line; when specified as line, it will only adds to an existing figure; When length(ind2plot)>1, type will be reset to plot
 which means the first curve will be made with plot() and additional ones with lines()}
 
@@ -42,8 +45,6 @@ for outlier status will be removed; if style=='points', only points will be show
 \item{showTopN}{if specified show best N model in figure to avoid busy plotting; otherwise show all successful models.}
 
 \item{lwd}{line width for the curves}
-
-\item{col}{color for the lines}
 }
 \description{
 plot dose response curve from fitOneExp() result
