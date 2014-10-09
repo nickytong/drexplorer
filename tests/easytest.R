@@ -1,5 +1,5 @@
 library(drexplorer)
-data(ryegrass)
+data(ryegrass, package='drc')
 #(1) identify outliers
 dose <- ryegrass[, 2]
 response <- ryegrass[, 1]
