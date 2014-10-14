@@ -7,7 +7,8 @@
 \S4method{plot}{drFit}(x, pchs = c(16, 17, 15), cols = c(1, 2, 3),
   col = 4, lwd = 2, addLegend = TRUE, xlab = "Log10(Dose)",
   ylab = "Relative viability", ylim = NA, xlim = NA, main,
-  style = "full", bty = "n", h = c(0.5), cex.main = 1)
+  style = "full", bty = "n", h = c(0.5), cex.main = 1, cex.axis = 1,
+  cex.lab = 1)
 }
 \arguments{
 \item{x}{a drFit object}
@@ -43,6 +44,10 @@ when style='simple', only fitted curve is plotted (without dose-response points 
 \item{h}{horizontal line to add indicating e.g. IC50 (h=0.5)}
 
 \item{cex.main}{cex for main title}
+
+\item{cex.axis}{cex for axis annotation}
+
+\item{cex.lab}{cex for axis label}
 }
 \description{
 plot method for drFit object

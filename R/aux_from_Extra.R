@@ -155,13 +155,19 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 #' @param ylab ylab
 #' @param style if style == 'full', the outlier status as well as its legend will be shown; if style=='simple', the points and legend
 #'	for outlier status will be removed; if style=='points', only points will be shown; this is useful if to compare multiple curves from different drugs. 
-#' @param show either RSE, IC50 or both indicating if we need to show RSE and/or IC50 in addition to the model
+#' @param show whether to show RSE ('RSE'), IC50 ('IC50'), both ('both') or nothing ('None') in addition to the best model as legend
 #' @param cexLegend legend cex
+#' @param posLegend position of legend for model information 
 #' @param showTopN if specified show best N model in figure to avoid busy plotting; otherwise show all successful models. 
 #' @param lwd line width for the curves
+#' @param cex.main cex for main title
+#' @param cex.axis cex for axis annotation
+#' @param cex.lab cex for axis label
+#' @param addOutlierLegend whether to add legend for outlier status
 #' @export
 plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', h=c(0.3, 0.5, 0.7), tag=NA, main=NA, 
-	cex.main=1, xlab=NA, ylab=NA, ylim=NA, xlim=NA, show='both', cexLegend=NA, showTopN=NA, lwd=2){
+	cex.main=1, xlab=NA, ylab=NA, ylim=NA, xlim=NA, show='both', cexLegend=NA, posLegend='bottomleft', showTopN=NA, lwd=2, cex.axis=1, cex.lab=1, 
+	addOutlierLegend=TRUE){
 	#browser()
 	# calculate the actual color to be used
 	# notice cols here is different from fitRes$models: it ensures col_use have equal length as length(fitRes$models)
@@ -219,8 +225,8 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 		if(is.na(ylim[1]))
 			ylim <- c(0, max(1.2,rMax))
 		#browser()
-		plot(fits[[ind2plot[1]]], col=col_use[ind2plot[1]], lwd=lwd, main=main, style=style, 
-				xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim, bty='n', h=h, cex.main=cex.main)		
+		plot(fits[[ind2plot[1]]], col=col_use[ind2plot[1]], lwd=lwd, main=main, style=style, addLegend=addOutlierLegend, 
+				xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim, bty='n', h=h, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)		
 	} else {
 		lines(fits[[ind2plot[1]]], col=col_use[ind2plot[1]], lwd=lwd)
 	}
@@ -251,9 +257,9 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 	#browser()
 	if(show!='None') { # None disable the legend
 		if(is.na(ind2plot[1])) { # by default, show legend of all models when ind2plot is not specified
-			legend("bottomleft", models_show, col=col_use, lwd=lwd*2, bty='n', cex=cexLegend)
+			legend(posLegend, models_show, col=col_use, lwd=lwd*2, bty='n', cex=cexLegend)
 		} else { # when ind2plot=='best', need to match with customized color
-			legend("bottomleft", models_show, col=col_use[ind2plot], lwd=lwd*2, bty='n', cex=cexLegend)
+			legend(posLegend, models_show, col=col_use[ind2plot], lwd=lwd*2, bty='n', cex=cexLegend)
 		}	
 	}
 	#browser()

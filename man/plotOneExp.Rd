@@ -6,7 +6,9 @@
 plotOneExp(fitRes, ind2plot = NA, cols = NA, type = "plot",
   style = "full", h = c(0.3, 0.5, 0.7), tag = NA, main = NA,
   cex.main = 1, xlab = NA, ylab = NA, ylim = NA, xlim = NA,
-  show = "both", cexLegend = NA, showTopN = NA, lwd = 2)
+  show = "both", cexLegend = NA, posLegend = "bottomleft",
+  showTopN = NA, lwd = 2, cex.axis = 1, cex.lab = 1,
+  addOutlierLegend = TRUE)
 }
 \arguments{
 \item{fitRes}{return value from fitOneExp()}
@@ -38,13 +40,23 @@ for outlier status will be removed; if style=='points', only points will be show
 
 \item{xlim}{xlim}
 
-\item{show}{either RSE, IC50 or both indicating if we need to show RSE and/or IC50 in addition to the model}
+\item{show}{whether to show RSE ('RSE'), IC50 ('IC50'), both ('both') or nothing ('None') in addition to the best model as legend}
 
 \item{cexLegend}{legend cex}
+
+\item{posLegend}{position of legend for model information}
 
 \item{showTopN}{if specified show best N model in figure to avoid busy plotting; otherwise show all successful models.}
 
 \item{lwd}{line width for the curves}
+
+\item{cex.axis}{cex for axis annotation}
+
+\item{cex.lab}{cex for axis label}
+
+\item{addOutlierLegend}{whether to add legend for outlier status}
+
+\item{cex.main}{cex for main title}
 }
 \description{
 plot dose response curve from fitOneExp() result

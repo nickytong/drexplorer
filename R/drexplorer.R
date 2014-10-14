@@ -12,7 +12,7 @@ detach("package:drexplorer", unload=TRUE)
 library(drexplorer)
 
 build_win('drexplorer')
-load_all('drexplorer')
+load_all('/home/ptong1/Backup/GitHub/drexplorer')
 
 ##
 library(drexplorer)
@@ -452,7 +452,8 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, ...) {
 	}
 	if(tag=="DoseFinding"){
 		modelName <- attributes(drFit@fit)$model
-		fname <- get(modelName, pos=which(search() == "package:DoseFinding")) # function name, i.e. sigEmax
+		#fname <- get(modelName, pos=which(search() == "package:DoseFinding")) # function name, i.e. sigEmax
+		fname <- get(modelName) # function name, i.e. sigEmax
 		coy <- as.list(drFit@fit$coefs) # coefs, a list for do.call
 		# define root finding function: a function of d. coef specifies 4 essential parameter: e0, emax, ed50, h
 		f.DoseFinding <- function(d, coef, IC) {
@@ -619,11 +620,13 @@ format_grid <- function(dose1, resolution=50, stepLen=NA){
 #' @param bty bty passed to legend
 #' @param h horizontal line to add indicating e.g. IC50 (h=0.5)
 #' @param cex.main cex for main title
+#' @param cex.axis cex for axis annotation
+#' @param cex.lab cex for axis label
 #' @aliases plot,drFit-method
 #' @export 
 setMethod('plot', signature(x='drFit'),
           function(x, pchs=c(16, 17, 15), cols=c(1, 2, 3), col=4, lwd=2, addLegend=TRUE, xlab="Log10(Dose)", 
-		  ylab="Relative viability", ylim=NA, xlim=NA, main, style='full', bty='n', h=c(0.5), cex.main=1) {
+		  ylab="Relative viability", ylim=NA, xlim=NA, main, style='full', bty='n', h=c(0.5), cex.main=1, cex.axis=1, cex.lab=1) {
   	if(missing(main)) main <- attributes(x@fit)$model
 	if(is.na(ylim[1])) ylim <- c(0,1.2)
 	drMat <- x@originalDat
@@ -660,12 +663,12 @@ setMethod('plot', signature(x='drFit'),
 	if(style!='simple') { # full or points
 		# points for dose>0
 		plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim,
-           xlab=xlab, ylab=ylab, main=main, col=pCols[dose!=0], pch=pPchs[dose!=0], cex.main=cex.main)
+           xlab=xlab, ylab=ylab, main=main, col=pCols[dose!=0], pch=pPchs[dose!=0], cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)
 		## more intuitive axis 
 	} else {
 		#browser()#simple no points
 		plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim,
-           xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, col=pCols[dose!=0], pch=pPchs[dose!=0], type='n')
+           xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, col=pCols[dose!=0], pch=pPchs[dose!=0], type='n')
 	}	
 	# only add the points if style is  full
 	if(style!='simple'){ # full or points
