@@ -560,10 +560,10 @@ computeIC <- function(drFit, percent=0.50, log.d=TRUE, interpolation=TRUE, stepL
 			}
 			names(res) <- paste('IC', percent*100, sep='')
 		}
-	}
-	# final presentation
-	if(log.d) {
-	res <- log10(res)
+		# final presentation
+		if(log.d) {
+		res <- log10(res)
+		}
 	}
 	res
 }
