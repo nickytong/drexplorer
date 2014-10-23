@@ -10,7 +10,7 @@
 
 <meta name="author" content="Pan Tong and Kevin R Coombes" />
 
-<meta name="date" content="2014-10-09" />
+<meta name="date" content="2014-10-23" />
 
 <title>Dose-response Explorer: Exploring different models and drug-drug interaction</title>
 
@@ -55,7 +55,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <div id="header">
 <h1 class="title">Dose-response Explorer: Exploring different models and drug-drug interaction</h1>
 <h4 class="author"><em>Pan Tong and Kevin R Coombes</em></h4>
-<h4 class="date"><em>2014-10-09</em></h4>
+<h4 class="date"><em>2014-10-23</em></h4>
 </div>
 
 <div id="TOC">
@@ -174,17 +174,19 @@ y</code></pre>
 </div>
 <div id="obtain-ic-values" class="section level2">
 <h2>Obtain IC values</h2>
-<p>We implement two approaches for IC value computation. One is to interpolate the observed dosages and try to use the dose that has the predicted response closest to the specified percentile of IC value. The second approach is to use root finding by setting the fitted model to equal to the specified percentile. In most cases, the result are similar. However, the latter approach may give IC50 values beyond observed dosages and sometimes not robust. The computeIC() function implements both approaches. By setting interpolation=TRUE (the default value) in the computeIC() function, the interpolation approach will be selected.</p>
+<p>We implement two approaches for IC value computation. One is to interpolate the observed dosages and try to use the dose that has the predicted response closest to the specified percentile of IC value. The second approach is to use root finding by setting the fitted model to equal to the specified percentile. In most cases, the result are similar. However, the latter approach may give IC50 values beyond observed dosages and sometimes not robust. Further, a specified IC might be not achievable for the fitted model, in which case the returned dose is either -Inf (a flagger for percentile being too small to be achieved) or Inf (a flagger for percentile being too large to be achieved). The computeIC() function implements both approaches. By setting interpolation=TRUE (the default value) in the computeIC() function, the interpolation approach will be selected.</p>
 <p>Computing IC values at different quantiles is also easy. Similar to the fitDRC() function, different models as well as other options (alpha and fitCtr) can be specified in estimating IC value.</p>
-<p>Below we estimate IC50 at different percentiles with the sigmoid Emax model with outlier removal (alpha=0.05) fitted previously. We see that estimates from interpolation and prediction by the model are quite similar.</p>
+<p>Below we estimate IC50 at different percentiles with the sigmoid Emax model with outlier removal (alpha=0.05) fitted previously. We see that estimates from interpolation and prediction by the model are quite similar except for IC100 where Inf is returned since the fitted model cannot achieve 100% killing effect (see figure below).</p>
 <pre class="r"><code>computeIC(fit_sigEmax_alpha_o5, percent=seq(0, 1, by=0.1), log.d=FALSE, interpolation=TRUE)</code></pre>
 <pre><code>##    IC0   IC10   IC20   IC30   IC40   IC50   IC60   IC70   IC80   IC90 
 ##  0.940  1.566  1.952  2.281  2.600  2.948  3.362  3.916  4.828  7.855 
 ##  IC100 
 ## 30.000</code></pre>
 <pre class="r"><code>computeIC(fit_sigEmax_alpha_o5, percent=seq(0, 1, by=0.1), log.d=FALSE, interpolation=FALSE)</code></pre>
-<pre><code>##   IC0  IC10  IC20  IC30  IC40  IC50  IC60  IC70  IC80  IC90 IC100 
-##    NA    NA    NA    NA    NA    NA    NA    NA    NA    NA    NA</code></pre>
+<pre><code>##    IC0   IC10   IC20   IC30   IC40   IC50   IC60   IC70   IC80   IC90 
+## 0.8616 1.5663 1.9519 2.2803 2.6026 2.9508 3.3636 3.9157 4.8287 7.8568 
+##  IC100 
+##    Inf</code></pre>
 
 <p>We provide S4 generic functions (plot and lines) for fitted model. As a result, it is easy to compare different models and graphically examine outliers through multiple dose-response curves.</p>
 <p>Outliers at significance levels 0.01 and 0.05 are indicated by different colors and symbols. Below we show the LL.3, LL.3u and sigEmax curves in this example corresponding to the three-parameter log-logistic model with lower limit 0, three-parameter log-logistic with upper limit 1 and the sigmoid Emax model.</p>
@@ -274,7 +276,7 @@ plotIAI(fit_allPoss_1, type='medianEffect') </code></pre>
 <div id="session-info" class="section level2">
 <h2>Session Info</h2>
 <p>R version 3.1.0 (2014-04-10) Platform: x86_64-unknown-linux-gnu (64-bit)</p>
-<p>locale: [1] C</p>
+<p>locale: [1] LC_CTYPE=en_US.UTF-8 LC_NUMERIC=C<br /> [3] LC_TIME=en_US.UTF-8 LC_COLLATE=C<br /> [5] LC_MONETARY=en_US.UTF-8 LC_MESSAGES=en_US.UTF-8<br /> [7] LC_PAPER=en_US.UTF-8 LC_NAME=C<br /> [9] LC_ADDRESS=C LC_TELEPHONE=C<br />[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C</p>
 <p>attached base packages: [1] stats graphics grDevices utils datasets methods base</p>
 <p>other attached packages: [1] drexplorer_1.0.2</p>
 <p>loaded via a namespace (and not attached): [1] DoseFinding_0.9-11 RColorBrewer_1.0-5 Rcpp_0.11.2<br /> [4] colorspace_1.2-4 digest_0.6.4 drc_2.3-96<br /> [7] epiR_0.9-58 evaluate_0.5.5 fgui_1.0-5<br />[10] formatR_1.0 grid_3.1.0 htmltools_0.2.6<br />[13] knitr_1.6 lattice_0.20-29 munsell_0.4.2<br />[16] mvtnorm_1.0-0 plyr_1.8.1 rmarkdown_0.2.57<br />[19] scales_0.2.4 splines_3.1.0 stringr_0.6.2<br />[22] survival_2.37-7 tcltk_3.1.0 tools_3.1.0<br />[25] yaml_2.1.13</p>

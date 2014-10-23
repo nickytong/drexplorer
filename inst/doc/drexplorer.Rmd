@@ -119,14 +119,20 @@ y
 ## Obtain IC values
 We implement two approaches for IC value computation. One is to interpolate the observed dosages and try to use the dose that has the predicted response closest to the 
 specified percentile of IC value. The second approach is to use root finding by setting the fitted model to equal to the specified percentile. In most cases, the result
-are similar. However, the latter approach may give IC50 values beyond observed dosages and sometimes not robust. The computeIC() function implements both approaches. By setting
+are similar. However, the latter approach may give IC50 values beyond observed dosages and sometimes not robust. Further,
+a specified IC might be not achievable for the fitted model, in which case the returned dose is either 
+-Inf (a flagger for percentile being too
+small to be achieved) or Inf (a flagger for percentile being too
+large to be achieved). The computeIC() function implements both approaches. By setting
 interpolation=TRUE (the default value) in the computeIC() function, the interpolation approach will be selected.   
 
 Computing IC values at different quantiles is also easy. Similar to the fitDRC() function, different models as well as other options (alpha and fitCtr) 
 can be specified in estimating IC value. 
 
 Below we estimate IC50 at different percentiles with the sigmoid Emax model with outlier removal (alpha=0.05) fitted previously. We see that 
-estimates from interpolation and prediction by the model are quite similar. 
+estimates from interpolation and prediction by the model are quite similar except for IC100 where Inf is returned since the fitted
+model cannot achieve 100% killing effect (see figure below). 
+
 ```{r}
 computeIC(fit_sigEmax_alpha_o5, percent=seq(0, 1, by=0.1), log.d=FALSE, interpolation=TRUE)
 computeIC(fit_sigEmax_alpha_o5, percent=seq(0, 1, by=0.1), log.d=FALSE, interpolation=FALSE)

@@ -414,13 +414,17 @@ setMethod('predict', signature(object='drFit'),
 
 
 ### find IC values by univariate rootfinding from fitted curve. options in uniroot can be specified
-RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, ...) {
+# use dmin to indicate non-achievable IC due to to small IC (drug too effective based on the curve)
+# use dmax to indicate non-achievable IC due to to high IC (drug too ineffective based on the curve)
+RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=-Inf, dmax=Inf, ...) {
 	#### the predicted response is bounded with theoretical lower and upper bound. When the required response specified by IC is out of the theoretical range, we need to specify the returned dose
 	#### originally we specify NA, in which case we may get IC50=NA, which can be due to too sensitive or too negative. Thus, it is better to give a value.
 	#### we assign dmin for the scaled response larger than theoretical response; we assign dmax for response smaller than theretical minimum response.
 	#### notice this only affects the IC by prediction result
-	dmin <- 1e-30 # rediculously low dose
-	dmax <- 1e30 # rediculously high dose
+	#dmin <- 1e-30 # rediculously low dose
+	#dmax <- 1e30 # rediculously high dose
+	#dmin <- -Inf # rediculously low dose
+	#dmax <- Inf
 	tag <- drFit@tag
 	res <- NA
 	dose <- drFit@originalDat[, 1]
