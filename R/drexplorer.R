@@ -518,50 +518,50 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, ...) {
 computeIC <- function(drFit, percent=0.50, log.d=TRUE, interpolation=TRUE, stepLen=NA, lower, upper, ...) {
 	#percent <- 1-percent ### convert to biological percent; updated on 2014/02/13---> not ok: the order is reversed!
 	if(interpolation==FALSE){
-	if(length(percent)==1) return(RootFindingIC(drFit, percent, log.d, lower=lower, upper=upper, ...))
-	if(length(percent)>1) {
-		res <- rep(NA, length(percent))
-		for(i in 1:length(percent)) {
-			tm <- try(RootFindingIC(drFit, percent[i], log.d, lower=lower, upper=upper, ...), silent=TRUE)
-			if(class(tm)!='try-error')
-			res[i] <- tm
+		if(length(percent)==1) return(RootFindingIC(drFit, percent, log.d, lower=lower, upper=upper, ...))
+		if(length(percent)>1) {
+			res <- rep(NA, length(percent))
+			for(i in 1:length(percent)) {
+				tm <- try(RootFindingIC(drFit, percent[i], log.d, lower=lower, upper=upper, ...), silent=TRUE)
+				if(class(tm)!='try-error')
+				res[i] <- tm
+			}
+			names(res) <- paste('IC', percent*100, sep='')
+			#return(res)
 		}
-		names(res) <- paste('IC', percent*100, sep='')
-		return(res)
-	}
 	} else {
-	drMat <- drFit@originalDat
-	dose <- drMat[, 1]
-	response <- drMat[, 2]
-	ctr <- response[dose==0] # ctr measurements have dose=0
-	trt <- response[dose!=0] 
-	# scale the control and treatment effects with control mean
-	ctrScaled <- ctr/mean(ctr)
-	trtScaled <- trt/mean(ctr)
-	#browser()
-	dose1 <- dose[dose!=0] # nonzero dosage
-	gg <- format_grid(dose1=dose1, stepLen=stepLen, resolution=100)
-	top <- gg$top
-	bot <- gg$bot
-	xGrid <- gg$xGrid
-	yv <- predict(drFit, newData=xGrid) ## predicted values. dose at the original scale
-	if(length(percent)==1) {
-		res <- icByInterpolation(percent, xv=xGrid, yv, max(dose1), min(dose1))
-	} else {
-		res <- rep(NA, length(percent))
-		for(i in 1:length(percent)) {
-			tm <- try(icByInterpolation(percent[i], xv=xGrid, yv, max(dose1), min(dose1)), silent=TRUE)
-			if(class(tm)!='try-error')
-			res[i] <- tm
+		drMat <- drFit@originalDat
+		dose <- drMat[, 1]
+		response <- drMat[, 2]
+		ctr <- response[dose==0] # ctr measurements have dose=0
+		trt <- response[dose!=0] 
+		# scale the control and treatment effects with control mean
+		ctrScaled <- ctr/mean(ctr)
+		trtScaled <- trt/mean(ctr)
+		#browser()
+		dose1 <- dose[dose!=0] # nonzero dosage
+		gg <- format_grid(dose1=dose1, stepLen=stepLen, resolution=100)
+		top <- gg$top
+		bot <- gg$bot
+		xGrid <- gg$xGrid
+		yv <- predict(drFit, newData=xGrid) ## predicted values. dose at the original scale
+		if(length(percent)==1) {
+			res <- icByInterpolation(percent, xv=xGrid, yv, max(dose1), min(dose1))
+		} else {
+			res <- rep(NA, length(percent))
+			for(i in 1:length(percent)) {
+				tm <- try(icByInterpolation(percent[i], xv=xGrid, yv, max(dose1), min(dose1)), silent=TRUE)
+				if(class(tm)!='try-error')
+				res[i] <- tm
+			}
+			names(res) <- paste('IC', percent*100, sep='')
 		}
-		names(res) <- paste('IC', percent*100, sep='')
 	}
+	# final presentation
 	if(log.d) {
-	return (log10(res))
-	} else {
-	return (res)
+	res <- log10(res)
 	}
-	}
+	res
 }
 
 # computeIC(fit_sigEmax_alpha_o5, percent=0.5, log.d=TRUE, niter=500)
