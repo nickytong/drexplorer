@@ -406,7 +406,7 @@ setMethod('predict', signature(object='drFit'),
 		#f <- get(modelName, pos=which(search() == "package:DoseFinding")) # function name, i.e. sigEmax
 		f <- get(modelName) # function name, i.e. sigEmax
 		coy <- as.list(fitObj$coefs)
-       coy$dose <- newData
+        coy$dose <- newData
 		y <- do.call(f, coy)
 	}
 	y
