@@ -16,10 +16,13 @@ output:
 ## Introduction
 There is a great variety of models developed for dose-response data, many of which have been implemented in 
  the **drc** and **DoseFinding** packages. **drexplorer** combines both packages to aid the user to visually examine and compare how existing models
- perform on the data. We also incorporate model selection. Another important feature for **drexplorer** is to allow the user to identify outlier measurements and visually examine
+ perform on the data. We also incorporate model selection using Residual Standard Error (RSE) so that the best model can be identified. 
+ Another important feature for **drexplorer** is to allow the user to identify outlier measurements and visually examine
  how these outliers affect the fitted model. 
 
- In addition to fit dose-response models, **drexplorer** also implements methods previously published to assess drug-drug interaction. 
+Usually, researchers will screen drug combinations using their favorite drugs. Experimentally, this is similar to single drug screening. However,
+there is a lack of software to perform such analysis. For this consideration, **drexplorer** also implements methods previously published to assess 
+drug-drug interaction using the Interaction Index (IAI) approach. 
  Graphical User Interfaces (GUIs) have been
 designed to allow users without advanced programming skills to perform dose-response analysis.  
 
@@ -31,9 +34,11 @@ This package implements the method by Newman, D. The test statistic q=w/s where 
 estimated from controls. The null distribution for q has been derived and 1% and 5% quantiles have been given in the paper.
 
 We implement this procedure. In particular, NewmanTest() returns a logic vector specifying whether the observations are outliers.
-Usually, drug-response data contains multiple doses. Therefore, we write a wrapper drOutlier() that compute the result for all doses each dose at a time.
+Usually, drug-response data contains multiple doses. Therefore, we write a wrapper drOutlier() that compute the result for all doses one dose at a time.
 
-We use the *ryegrass* data from **drc** package for illustration purpose.
+We use the *ryegrass* data from **drc** package for illustration purpose. 
+The *ryegrass* data was originally published by [(Streibig et al. 2002)](#Streibig2002ryegrass) which contains 24 concentrations of ferulic acid 
+(a root growth inhibitor) and corresponding root length. 
 
 First, we load the **drexplorer** package and attach the \Rpackage{ryegrass} data.
 
@@ -46,13 +51,16 @@ knitr::opts_chunk$set(fig.align='center', fig.show='asis',
 library(drexplorer)
 ```
 
-At dose=3.75 and significance level 0.05, we find there is one outlier identified:
-
 ```{r}
 #library(drc)
 data(ryegrass, package='drc')
 dose <- ryegrass[, 2]
 response <- ryegrass[, 1]
+```
+
+At dose=3.75 and significance level 0.05, we find there is one outlier identified:
+
+```{r}
 ## potential outlier at dose 3.75
 NewmanTest(ref=response[dose==0], obs=response[dose==3.75], alpha=0.05)
 ```
@@ -73,11 +81,11 @@ A good metric is the Concordance Correlation Coefficient (CCC) that captures bot
 set.seed(100)
 r1 <- runif(28)
 r2 <- r1+rnorm(28, 0, 0.1)
-ccc <- plotCCC(r1, r2)
+ccc <- plotCCC(r1, r2, xlab='Simulated response, replicate 1', ylab='Simulated response, replicate 2')
 ccc
 ``` 
 
-Here we simulate two response vectors and calculate CCC. The computed CCC value is `r round(ccc['ccc'], 3)`, location shift is
+Here we have simulated two response vectors and calculate CCC. The computed CCC value is `r round(ccc['ccc'], 3)`, location shift is
 `r round(ccc['l_shift'], 3)`, scale shift is `r round(ccc['s_shift'], 3)`, Pearson correlation is `r round(ccc['corr'], 3)`. 
 
 ## Fit dose-response models
@@ -163,7 +171,7 @@ We see that the LL.3u model is best by the RSE criteria.
 sapply(list(fit.LL.3, fit.LL.3u, fit.sigEmax), function(x) x@info$RSE)
 ```
 
-We also compare the curve using sigEmax model with and without outlier identification.
+We also compare the curves using sigEmax model with and without outlier identification.
 
 ```{r}
 # no outlier excluded
@@ -182,12 +190,14 @@ two drugs is a constant. Another one is grid design which means all-possible com
 are available. 
 
 Two papers have been published regarding to drug interaction index (IAI) by Lee et al, 
-	one in 2007 (Lee2007) [Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007)](#lee2007interaction) and on in 2009 (Lee2009) [Lee, J. J., & Kong, M. (2009)](#lee2009confidence). The Lee2007 paper 
+	one in 2007 [Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007)](#lee2007interaction) and 
+	one in 2009 [Lee, J. J., & Kong, M. (2009)](#lee2009confidence). IAI=1 is the case for additive effect. IAI>1 means antagonistic interaction while IAI<1 means synergistic
+	interaction.  The Lee2007 paper 
 described five methods to assess interaction: (1) Lowewe additivity model using interaction index (IAI) (2) Model of Greco et al 1990.
 This approach uses $\alpha$ as the metric and it can be related to IAI (3) Model of Machado and Robinson which uses a metric denoted
 as $\eta$ (4) Model of Plummer and Short which can also be linked to IAI through the parameter $\beta_4$ (5) Model of
 Carter et al that can be linked to IAI through the parameter $\beta_{12}$. For more details 
-of these models, please refer to Lee2007 [Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007)](#lee2007interaction).
+of these models, please refer to [Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007)](#lee2007interaction).
 
 The two papers by Lee et al discussed the fixed ratio design and the source code for doing this is incorporated
 into **drexplorer**. To work on grid design, a fixed ratio from the data needs to be selected in order to apply their method. For
@@ -215,17 +225,25 @@ where E is the induced effect of a drug with dose d whose median effective dose 
 This equation can be arranged as:
 $$logit(E)=m(log d - log D_{m})$$
 
-The median effect plot is just plotting logit(E) versus log10 dose; The dose response curve is plotting E versus dose. 
+The median effect plot shows logit(E) versus log10 dose; The dose response curve shows E versus dose. 
+
+Below we plot IAI against response. The 95% confidence interval of IAI is shown in dashed line. It can be seen that there is significant synergistic interaction
+at small relative viability value (<0.5). Although the IAI suggests antagonistic interaction at high viability values, the confidence band shows this is not statistically
+significant. 
 
 ```{r}
 # IAI vs response
 plotIAI(fit_fixedRay, type='IAI', mode='response') 
 ```
 
+Similarly, we can plot IAI against dose (the sum of dosages from two drugs). The following figure shows that there is significant synergism at high dosage. 
+
 ```{r}
 # IAI versus dose
 plotIAI(fit_fixedRay, type='IAI', mode='dose') 
 ```
+
+The median effect plot is shown below. 
 ```{r}
 # median effect
 plotIAI(fit_fixedRay, type='medianEffect') 
@@ -310,6 +328,9 @@ sessionInfo()
 <a id="references"></a>
 
 ## References 
+
+<a id="Streibig2002ryegrass"></a> 
+Streibig, J. C., & Olofsdotter, M. (2002). Joint action of phenolic acid mixtures and its significance in allelopathy research. Physiologia Plantarum, 114(3), 422-428.
 
 <a id="lee2007interaction"></a> 
 Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007). Interaction index and different methods for determining drug interaction in combination therapy. Journal of biopharmaceutical statistics, 17(3), 461-480.
