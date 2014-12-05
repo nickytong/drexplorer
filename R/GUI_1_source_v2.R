@@ -1,25 +1,3 @@
-if(FALSE){
-# cd ~/Backup/GitHub/; R --vanilla
-library(roxygen2)
-library(devtools)
-
-roxygenise("drexplorer")
-build('drexplorer')
-install('drexplorer')
-
-##
-detach("package:drexplorer", unload=TRUE)
-library(drexplorer)
-
-build_win('drexplorer')
-load_all('drexplorer')
-
-##
-library(drexplorer)
-#res <- drexplorerGUI_2()
-res <- drexplorerGUI_1()
-}
-
 # common code in fgui
 parse_alpha <- function(){
 	alpha <- guiGetValue("alpha")
@@ -84,14 +62,17 @@ outputRes_press <- function(){
 	drug <- ''
 	cellLine <- ''
 	dirOutput <- set_dirOutput_()
-	pdf(file=file.path(dirOutput, sprintf('%s_%s_DoseResponseCurve.pdf', drug, cellLine)))
+	#pdf(file=file.path(dirOutput, sprintf('%s_%s_DoseResponseCurve.pdf', drug, cellLine)))
+	pdf(file=file.path(dirOutput, sprintf('DoseResponseCurve.pdf')))
 	resL <- fitOneExp(dat=guiGetSafe("PERSONAL_dataset"), drug='', cellLine='', tag='', models=guiGetValue("models"), alpha=guiGetSafe("alpha_"), plot=TRUE, transparency=0.95)
 	dev.off()
 	ICmat <- resL$ICmat
 	datWithOutlierStatus <- resL$datWithOutlierStatus
-	write.csv(ICmat, file=file.path(dirOutput, sprintf('%s_%s_ICtable.csv', drug, cellLine)))
-	write.csv(datWithOutlierStatus, file=file.path(dirOutput, sprintf('%s_%s_datWithOutlierStatus.csv', drug, cellLine)))
-	
+	#write.csv(ICmat, file=file.path(dirOutput, sprintf('%s_%s_ICtable.csv', drug, cellLine)))
+	#write.csv(datWithOutlierStatus, file=file.path(dirOutput, sprintf('%s_%s_datWithOutlierStatus.csv', drug, cellLine)))
+	write.csv(ICmat, file=file.path(dirOutput, sprintf('ICtable.csv')))
+	write.csv(datWithOutlierStatus, file=file.path(dirOutput, sprintf('datWithOutlierStatus.csv')))
+
 }
 
 
@@ -130,7 +111,6 @@ exampleDat_press <- function() {
   
 }
 
-#library(fgui)
 #' Launch Graphical User Interface (GUI) for dose response curve fitting
 #' 
 #' This function will launch GUI for curve fitting. The GUI works across different platforms, but the appearance would be slightly different.
@@ -156,12 +136,5 @@ drexplorerGUI_1 <- function() {
        verbose=FALSE )
 }
 #res <- drexplorerGUI_1()
-
-if(FALSE){
-dat <- read.csv('drexplorer/R/ryegrass.csv')
-#resL <- fitOneExp(dat, drug='Drug X', cellLine='Cell line A', models=c("LL.3", "LL.3u", "sigEmax", "logistic"), plot=TRUE, transparency=0.95)
-#resL <- fitOneExp(dat, drug='Drug X', cellLine='Cell line A', main='', ind2plot='best', cols='blue', models=c("LL.3", "LL.3u", "sigEmax", "logistic", "linlog"), plot=TRUE, transparency=0.95)
-resL <- fitOneExp(dat, drug='Drug X', cellLine='Cell line A', tag='', models=c("LL.3", "LL.3u", "sigEmax", "logistic"), plot=TRUE, transparency=0.95)
-}
 
 

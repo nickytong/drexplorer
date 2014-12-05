@@ -9,7 +9,8 @@ computeIC(drFit, percent = 0.5, log.d = TRUE, interpolation = TRUE,
 \arguments{
 \item{drFit}{A drFit object as returned by drFit() function.}
 
-\item{percent}{the inhibition ratio to be searched against. A vector between 0 and 1.}
+\item{percent}{the inhibition ratio to be searched against. A vector between 0 and 1. Corresponding
+response is 1-percent}
 
 \item{log.d}{whether to return log10(dose) or the raw dose. Default is set to TRUE.}
 

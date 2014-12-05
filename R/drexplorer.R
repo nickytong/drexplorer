@@ -1,25 +1,3 @@
-if(FALSE){
-# cd ~/Backup/GitHub/; R --vanilla
-library(roxygen2)
-library(devtools)
-
-roxygenise("drexplorer")
-build('drexplorer')
-install('drexplorer')
-
-##
-detach("package:drexplorer", unload=TRUE)
-library(drexplorer)
-
-build_win('drexplorer')
-load_all('/home/ptong1/Backup/GitHub/drexplorer')
-
-##
-library(drexplorer)
-#res <- drexplorerGUI_2()
-res <- drexplorerGUI_1()
-}
-
 #'  Table III and IV published by Newman
 #'
 #' This dataset contains two 20-by-12 matrices corresponding to table III and table IV published by Newman, D. In
@@ -304,7 +282,58 @@ noNA <- function (dat)
     }
     res
 }
-
+#' prepare dose-reponse data
+#'
+#' this function scaled the response by mean reponse in control when necessary
+#'
+#' the standardization means response (e.g. count) is to be scaled by mean control response so that
+#' the standardized response is relative viability, usually between 0 and 1.
+#' this function first detects outlier data points (using supplied data, either scaled or not scaled). It
+#' then scale the data and split the data into two data frames: one for dose not 0 and one for dose at 0 
+#' Ideally, outlier detection is better at original count (or signal intensity) due to asymptotic assumption
+#' But for data already scaled, detection outlier at this level is what we can do
+#'
+#' @param drMat dose-response matrix as for drFit. the first column being dosage and second column being response. controls are included by specifying dose=0
+#' @param alpha a scalar for significance level. This specifies the significance level to identify outliers which will be excluded from model fitting. To include
+#'  all data, set alpha=1. 
+#' @param fitCtr A logic vector specifying whether to include the control points into the model fitting.
+#' @param standardize whether to standardize (scale) the data
+#' @return a list
+prepDRdat <- function(drMat, alpha=0.01, fitCtr=FALSE, standardize=TRUE){
+	# if drMat itself is scaled data, then outlier remover is on scaled data
+	indicator <- drOutlier(drMat=drMat, alpha=alpha) # for outlier removal
+	indicator1 <- suppressWarnings(drOutlier(drMat=drMat, alpha=0.05)) # for plot purpose indicating different levels of outlier status
+	indicator2 <- suppressWarnings(drOutlier(drMat=drMat, alpha=0.01)) # for plot purpose indicating different levels of outlier status
+	drMat <- noNA(drMat)
+	hasCtrl <- any(drMat[, 1]==0) # logical indicating if there is control data by testing if any dose is 0
+	dose <- drMat[, 1]
+	response <- drMat[, 2]
+	#indCtrl <- round(dose, 5)==0 # dose might be 1e-8 and thus it is not control!
+	indCtrl <- dose==0
+	indTrt <- !indCtrl
+	ctr <- response[indCtrl] # ctr measurements have dose=0
+	trt <- response[indTrt] 		
+	if(standardize){
+		# scale the control and treatment effects with control mean
+		## datAll is scalled data including control and outlier
+		datAll <- data.frame(dose=dose, response=(response/mean(ctr)))
+	} else {
+		# no standardization
+		datAll <- data.frame(dose=dose, response=response)
+	}
+	# dat is the data used for fitting models
+	if(fitCtr) { 
+		dat <- datAll[!indicator, ] # just remove outlier and include control
+	} else {
+		tempSel <- !indicator & indTrt
+		dat <- datAll[tempSel, ]
+	}
+	isCtrl <- indCtrl # this include outliers; 
+	isTrt <- indTrt # this include outliers; 
+	#browser()
+	list(dat=dat, datAll=datAll, isCtrl=isCtrl, isTrt=isTrt, isOutlier=indicator, indicator1=indicator1, indicator2=indicator2, 
+		standardize=standardize, fitCtr=fitCtr, alpha=alpha, hasCtrl=hasCtrl)
+}
 ## added residual standard error (RSE) on 2014/01/06 so that model selection by RSE can be implemented.
 ## notice: ******** drFit internally scales the response and fit the models on the scaled values. It is prohibited to scale the data before feeding to drexplorer!!!! *********
 #' Fit a dose-response model
@@ -333,30 +362,11 @@ noNA <- function (dat)
 #' fit.LL.3u <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "LL.3u", alpha=0.01, fitCtr=FALSE)
 #' fit.sigEmax <- drFit(drMat=ryegrass[, c(2, 1)], modelName = "sigEmax", alpha=0.01, fitCtr=FALSE)
 #' @author Kevin R Coombes (\email{kcoombes@@mdanderson.org}), Pan Tong (\email{nickytong@@gmail.com})
-drFit <- function(drMat, modelName = "sigEmax", alpha=0.01, fitCtr=FALSE){
+drFit <- function(drMat, modelName = "sigEmax", alpha=0.01, fitCtr=FALSE, standardize=TRUE){
 	package <- getPackageName(modelName) # which package source is the model implemented
-	indicator <- drOutlier(drMat=drMat, alpha=alpha) # for outlier removal
-	# 2014/02/22: remove NA so that we don't have to deal with the absurd error: Error in na.fail.default(data[, nams]) : missing values in object
-	drMat <- noNA(drMat)
-	dose <- drMat[, 1]
-	response <- drMat[, 2]
-	indCtrl <- round(dose, 5)==0
-	indTrt <- !indCtrl
-	ctr <- response[indCtrl] # ctr measurements have dose=0
-	trt <- response[indTrt] 
-	# scale the control and treatment effects with control mean
-	ctrScaled <- ctr/mean(ctr)
-	trtScaled <- trt/mean(ctr)
-#browser()
-	dose1 <- dose[indTrt] # nonzero dosage
-	## ***************** prepare input matrix: the response is scaled by controls **************###
-	## now dat after scaling is ready for dr fitting
-	if(fitCtr) { 
-		dat <- data.frame(dose=dose[!indicator], response=(response/mean(ctr))[!indicator])
-	} else {
-		tempSel <- (!indicator)[indTrt]
-		dat <- data.frame(dose=dose1[tempSel], response=trtScaled[tempSel])
-	}
+	#browser()
+	resPrepDR <- prepDRdat(drMat, alpha=alpha, fitCtr=fitCtr, standardize=standardize)
+	dat <- resPrepDR$dat
 	rse <- NA
 	if(package=='drc'){
 		f <- get(modelName) ## i.e. the LL.3 or LL.3u function from drc package
@@ -371,16 +381,57 @@ drFit <- function(drMat, modelName = "sigEmax", alpha=0.01, fitCtr=FALSE){
         if(inherits(model, "try-error")) {
 			stop(cat("Model", modelName, "failed\n"))
         } else {
-			rse <- sqrt(model$RSS/model$df)
+			rse <- sqrt(model$RSS/model$df) # sqrt(RSS/df)
 		}
 	}
 #browser()
-	res <- new('drFit', fit=model, fitDat=data.matrix(dat), originalDat=data.matrix(drMat), alpha=alpha, fitCtr=fitCtr, tag=package, info=list(RSE=rse))
+	res <- new('drFit', fit=model, fitDat=data.matrix(dat), originalDat=data.matrix(drMat), alpha=alpha, fitCtr=fitCtr, tag=package, 
+			info=list(RSE=rse, standardize=standardize, resPrepDR=resPrepDR))
 	res
-}	
+}
+#fit <- drFit(drMat=mydat[, c('Dose', 'y')], standardize=F, modelName = "sigEmax", alpha=1, fitCtr=FALSE)	
 ###
 ### when predicting, what dose is used, the original or the scaled dose?????
 ###	there is no scaling on dose, only scalin on value, only transformed. So this is a wrong question; but the answer is, the original dose is used!!!
+
+# AUC from fit object that has a prediction method
+getAUC <- function(fit, dmin, dmax, islogd) {
+	# assumption: the predict function is trained on original dose
+	# islogd: this makes it possible to calculate AUC either on log10dose or original dose. However, the user
+	#      should make sure dmin and dmax is on the same scale (take log10 correspondingly)
+	f_response <- function(Dose, islogd=islogd) {
+		if(islogd) {
+			dd <- 10^(Dose)
+		} else {
+			dd <- Dose
+		}
+		## currently only implements for drFit
+		if(class(fit)=='drFit'){
+			res <- predict(fit, newData=dd)
+		}
+		res  
+	}
+	# reference response, e.g. the line response=1; this can be used to scale AUC
+	f_responseRef <- function(Dose, reference=1) {
+		res <- rep(reference, length(Dose))
+		res 
+	}
+	#browser()
+	AUC <- try(integrate(f_response, lower=dmin, upper=dmax, islogd=islogd)$value, silent=TRUE)  
+	AUC0 <- try(integrate(f_responseRef, lower=dmin, upper=dmax)$value, silent=TRUE)  
+	if(inherits(AUC, 'try-error')) {
+		cat(AUC)
+		AUC=NA
+	}
+	if(inherits(AUC0, 'try-error')) {
+		cat(AUC0)
+		AUC0=NA
+	}
+	res <- c(AUC=AUC, AUC0=AUC0, AUCs=AUC/AUC0)
+	res
+}
+#getAUC(fit_sigEmax_alpha_o5, dmin=-0.027, dmax=1.477, islogd=T)
+#getAUC(fit, dmin=-8, dmax=-5.5, islogd=T)
 
 #browser()
 #### @rdname drFit-class
@@ -416,6 +467,9 @@ setMethod('predict', signature(object='drFit'),
 ### find IC values by univariate rootfinding from fitted curve. options in uniroot can be specified
 # use dmin to indicate non-achievable IC due to to small IC (drug too effective based on the curve)
 # use dmax to indicate non-achievable IC due to to high IC (drug too ineffective based on the curve)
+# 2014/11/28: to make the function more general, percent means desired response from fitted model, not IC. Thus, percent
+#   essentially can be negative. computeIC function needs to convert between IC and percent (response) by: 1-x(IC)/100=percent
+# percent is actually desired response here
 RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=-Inf, dmax=Inf, ...) {
 	#### the predicted response is bounded with theoretical lower and upper bound. When the required response specified by IC is out of the theoretical range, we need to specify the returned dose
 	#### originally we specify NA, in which case we may get IC50=NA, which can be due to too sensitive or too negative. Thus, it is better to give a value.
@@ -428,30 +482,36 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=-In
 	tag <- drFit@tag
 	res <- NA
 	dose <- drFit@originalDat[, 1]
-	if(missing(lower)) lower <- min(c(0, min(dose)))
+	if(missing(lower)) lower <- min(c(1e-30, min(dose)))
 	#if(missing(upper)) upper <- max(dose)*1e60
 	# modified on 02/22/2014: upper too large makes f(d) Nan in sigEmax. sigEmax is between e0+eMax ~ e0
 	if(missing(upper)) upper <- 1e10 # assume maximum dose will not exceed 1e10
+	myIC <- percent #
 	if(tag=="drc"){
 		objFct <- drFit@fit$fct
 		pm <- drFit@fit$parmMat # par mat
 		objFct$"fct"(dose, t(pm))
 		# define root finding function
-		f.drc <- function(d, parm, IC) objFct$"fct"(d, parm)-IC
+		#f.drc <- function(d, parm, IC) objFct$"fct"(d, parm)-IC
+		fl.drc <- function(ld, parm, IC) objFct$"fct"(exp(ld), parm)-IC
 		#res <- uniroot(f.drc, parm=t(pm), IC=percent, lower=lower, upper=upper, ...)$root
 		#browser()
 		# max: f.drc(d=lower, parm=t(pm), IC=0)
 		# min: f.drc(d=upper, parm=t(pm), IC=0)
 		# myIC is the scaled response
-		myIC <- 1-percent
-		ymin <- f.drc(d=upper, parm=t(pm), IC=0)
-		ymax <- f.drc(d=lower, parm=t(pm), IC=0)
+		#myIC <- 1-percent
+		#ymin <- f.drc(d=upper, parm=t(pm), IC=0)
+		#ymax <- f.drc(d=lower, parm=t(pm), IC=0)
+		ymin <- fl.drc(ld=log(upper), parm=t(pm), IC=0)
+		ymax <- fl.drc(ld=log(lower), parm=t(pm), IC=0)
+		#browser()
 		if(myIC>ymax) {
 			res <- dmin # required response > theoretical maximum response, throw NA
 		} else if(myIC<ymin){
 			res <- dmax # required response < theoretical minimum response, throw NA
 		} else {	
-			res <- uniroot(f.drc, parm=t(pm), IC=1-percent, lower=lower, upper=upper, ...)$root # to feed with biological IC
+			#res <- uniroot(f.drc, parm=t(pm), IC=myIC, lower=lower, upper=upper, ...)$root # to feed with biological IC
+			res <- exp(uniroot(fl.drc, parm=t(pm), IC=myIC, lower=log(lower), upper=log(upper), ...)$root) 
 		}
 	}
 	if(tag=="DoseFinding"){
@@ -460,27 +520,71 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=-In
 		fname <- get(modelName) # function name, i.e. sigEmax
 		coy <- as.list(drFit@fit$coefs) # coefs, a list for do.call
 		# define root finding function: a function of d. coef specifies 4 essential parameter: e0, emax, ed50, h
-		f.DoseFinding <- function(d, coef, IC) {
-			coef$dose <- d
+		fl.DoseFinding <- function(ld, coef, IC) {
+			coef$dose <- exp(ld)
 			do.call(fname, coef)-IC
 		}
-		ymax <- f.DoseFinding(d=lower, coef=coy, IC=0)
-		ymin <- f.DoseFinding(d=upper, coef=coy, IC=0)
+		ymax <- fl.DoseFinding(ld=log(lower), coef=coy, IC=0)
+		ymin <- fl.DoseFinding(ld=log(upper), coef=coy, IC=0)
 		# y at dose=d:  f.DoseFinding(d=0, coef=coy, IC=0)
 		#myf(3.75, coef=coy, IC=0.5)
 		#res <- uniroot(f.DoseFinding, coef=coy, IC=percent, lower=lower, upper=upper, ...)$root
 		#browser()
-		myIC <- 1-percent
 		if(myIC>ymax) {
 			res <- dmin # required response > theoretical maximum response, throw NA
 		} else if(myIC<ymin){
 			res <- dmax # required response < theoretical minimum response, throw NA
 		} else {	
-			res <- uniroot(f.DoseFinding, coef=coy, IC=myIC, lower=lower, upper=upper, ...)$root
+			res <- exp(uniroot(fl.DoseFinding, coef=coy, IC=myIC, lower=log(lower), upper=log(upper), ...)$root)
 		}	
 	}
 	if(log.d) res <- log10(res)
-	names(res) <- paste('IC', percent*100, sep='')
+	names(res) <- paste('response_', percent, sep='')
+	res
+}
+
+findDoseGivenResponse <- function(drFit, response=0.50, log.d=TRUE, interpolation=TRUE, stepLen=NA, lower, upper, ...) {
+	#percent <- 1-percent ### convert to biological percent; updated on 2014/02/13---> not ok: the order is reversed!
+	if(interpolation==FALSE){
+		if(length(response)==1) return(RootFindingIC(drFit, response, log.d, lower=lower, upper=upper, ...))
+		if(length(response)>1) {
+			res <- rep(NA, length(response))
+			for(i in 1:length(response)) {
+				tm <- try(RootFindingIC(drFit, response[i], log.d, lower=lower, upper=upper, ...), silent=TRUE)
+				if(class(tm)!='try-error')
+				res[i] <- tm
+			}
+			names(res) <- paste('response_', response, sep='')
+			#return(res)
+		}
+	} else {
+		resPrepDR <- drFit@info$resPrepDR # result of prep DR data 
+		datAll <- resPrepDR$datAll # scaled data including control (if available) and outliers
+		isTrt <- resPrepDR$isTrt # global indicator if data is treatment
+		dose <- datAll$dose # may include 0 dose
+		dose1 <- dose[isTrt]
+		#
+		gg <- format_grid(dose1=dose1, stepLen=stepLen, resolution=100)
+		top <- gg$top
+		bot <- gg$bot
+		xGrid <- gg$xGrid
+		yv <- predict(drFit, newData=xGrid) ## predicted values. dose at the original scale
+		if(length(response)==1) {
+			res <- icByInterpolation(response, xv=xGrid, yv, max(dose1), min(dose1))
+		} else {
+			res <- rep(NA, length(response))
+			for(i in 1:length(response)) {
+				tm <- try(icByInterpolation(response[i], xv=xGrid, yv, max(dose1), min(dose1)), silent=TRUE)
+				if(class(tm)!='try-error')
+				res[i] <- tm
+			}
+			names(res) <- paste('response_', response, sep='')
+		}
+		# final presentation
+		if(log.d) {
+		res <- log10(res)
+		}
+	}
 	res
 }
 
@@ -504,7 +608,8 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=-In
 #' This function uses rootfinding with fitted curve to compute IC values.
 #'
 #' @param drFit A drFit object as returned by drFit() function.
-#' @param percent the inhibition ratio to be searched against. A vector between 0 and 1.
+#' @param percent the inhibition ratio to be searched against. A vector between 0 and 1. Corresponding
+#'   response is 1-percent
 #' @param log.d whether to return log10(dose) or the raw dose. Default is set to TRUE.
 #' @param interpolation whether to use interpolation to estimate IC values. In this case, the computed IC values will be bound by the observed dosages.
 #' @param stepLen step length to construct equally spaced intervals during interpolation. Only used when interpolation=TRUE.
@@ -520,51 +625,8 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=-In
 #' computeIC(fit.sigEmax, percent=seq(0, 1, by=0.1), log.d=FALSE)	
 #' @export
 computeIC <- function(drFit, percent=0.50, log.d=TRUE, interpolation=TRUE, stepLen=NA, lower, upper, ...) {
-	#percent <- 1-percent ### convert to biological percent; updated on 2014/02/13---> not ok: the order is reversed!
-	if(interpolation==FALSE){
-		if(length(percent)==1) return(RootFindingIC(drFit, percent, log.d, lower=lower, upper=upper, ...))
-		if(length(percent)>1) {
-			res <- rep(NA, length(percent))
-			for(i in 1:length(percent)) {
-				tm <- try(RootFindingIC(drFit, percent[i], log.d, lower=lower, upper=upper, ...), silent=TRUE)
-				if(class(tm)!='try-error')
-				res[i] <- tm
-			}
-			names(res) <- paste('IC', percent*100, sep='')
-			#return(res)
-		}
-	} else {
-		drMat <- drFit@originalDat
-		dose <- drMat[, 1]
-		response <- drMat[, 2]
-		ctr <- response[dose==0] # ctr measurements have dose=0
-		trt <- response[dose!=0] 
-		# scale the control and treatment effects with control mean
-		ctrScaled <- ctr/mean(ctr)
-		trtScaled <- trt/mean(ctr)
-		#browser()
-		dose1 <- dose[dose!=0] # nonzero dosage
-		gg <- format_grid(dose1=dose1, stepLen=stepLen, resolution=100)
-		top <- gg$top
-		bot <- gg$bot
-		xGrid <- gg$xGrid
-		yv <- predict(drFit, newData=xGrid) ## predicted values. dose at the original scale
-		if(length(percent)==1) {
-			res <- icByInterpolation(percent, xv=xGrid, yv, max(dose1), min(dose1))
-		} else {
-			res <- rep(NA, length(percent))
-			for(i in 1:length(percent)) {
-				tm <- try(icByInterpolation(percent[i], xv=xGrid, yv, max(dose1), min(dose1)), silent=TRUE)
-				if(class(tm)!='try-error')
-				res[i] <- tm
-			}
-			names(res) <- paste('IC', percent*100, sep='')
-		}
-		# final presentation
-		if(log.d) {
-		res <- log10(res)
-		}
-	}
+	res <- findDoseGivenResponse(drFit, response=1-percent, log.d=log.d, interpolation=interpolation, stepLen=stepLen, lower=lower, upper=upper, ...)
+	names(res) <- paste('IC', percent*100, sep='')
 	res
 }
 
@@ -572,7 +634,9 @@ computeIC <- function(drFit, percent=0.50, log.d=TRUE, interpolation=TRUE, stepL
 
 ### IC by interpolation of predicted responses
 icByInterpolation <- function(perc, xv, yv, ubound=max(xv), lbound=min(xv)){
-	perc <- 1- perc # revert to biological IC starting from 0.9.5
+	#browser()
+	#perc <- 1- perc # revert to biological IC starting from 0.9.5
+	# 2014/11/28: perc is the desired response now
 	av <- abs(yv-perc)
 	wv <- which(av==min(av))[1]
 	ic <- xv[wv]
@@ -632,28 +696,32 @@ setMethod('plot', signature(x='drFit'),
           function(x, pchs=c(16, 17, 15), cols=c(1, 2, 3), col=4, lwd=2, addLegend=TRUE, xlab="Log10(Dose)", 
 		  ylab="Relative viability", ylim=NA, xlim=NA, main, style='full', bty='n', h=c(0.5), cex.main=1, cex.axis=1, cex.lab=1) {
   	if(missing(main)) main <- attributes(x@fit)$model
-	if(is.na(ylim[1])) ylim <- c(0,1.2)
-	drMat <- x@originalDat
+	#browser()
+	#tt <- prepDRdat(drMat, alpha=1, fitCtr=FALSE, standardize=x@info$standardize)
+	resPrepDR <- x@info$resPrepDR # result of prep DR data 
+	datAll <- resPrepDR$datAll # scaled data including control (if available) and outliers
+	isCtrl <- resPrepDR$isCtrl # global indicator if data is control
+	isTrt <- resPrepDR$isTrt # global indicator if data is treatment
+	hasCtrl <- resPrepDR$hasCtrl
+	indicator1 <- resPrepDR$indicator1
+	indicator2 <- resPrepDR$indicator2
+	dose <- datAll$dose # may include 0 dose
+	dose1 <- dose[isTrt]
+	trtScaled <- datAll$response[isTrt] # response at nonzero dosage
+	ctrScaled <- datAll$response[isCtrl] # response at nonzero dosage
+	#browser()
+	if(is.na(ylim[1])) ylim <- range(pretty(datAll$response))
 	## plot the original data points
 	# (1) outlier at both levels: for graphical purpose. the actual outlier identification is embedded in model fitting. 
-	indicator1 <- drOutlier(drMat=drMat, alpha=0.05)  
-	indicator2 <- drOutlier(drMat=drMat, alpha=0.01)
-	pCols <- rep(cols[1], nrow(drMat)) # cols[1] for regular points
+	#indicator1 <- drOutlier(drMat=drMat, alpha=0.05)  
+	#indicator2 <- drOutlier(drMat=drMat, alpha=0.01)
+	pCols <- rep(cols[1], nrow(datAll)) # cols[1] for regular points
 	pCols[indicator1] <- cols[2] # cols[2] for outliers at 5% significance level
 	pCols[indicator2] <- cols[3] # cols[3] for outliers at 1% significance level
-	pPchs <- rep(pchs[1], nrow(drMat))
+	pPchs <- rep(pchs[1], nrow(datAll))
 	pPchs[indicator1] <- pchs[2]
 	pPchs[indicator2] <- pchs[3]
-	# (2) data points and coordinates
-	dose <- drMat[, 1]
-	response <- drMat[, 2]
-	ctr <- response[dose==0] # ctr measurements have dose=0
-	trt <- response[dose!=0] 
-	# scale the control and treatment effects with control mean
-	ctrScaled <- ctr/mean(ctr)
-	trtScaled <- trt/mean(ctr)
-#browser()
-	dose1 <- dose[dose!=0] # nonzero dosage
+	# setup grid
 	gg <- format_grid(dose1)
 	top <- gg$top
 	bot <- gg$bot
@@ -666,18 +734,19 @@ setMethod('plot', signature(x='drFit'),
 	#browser()
 	if(style!='simple') { # full or points
 		# points for dose>0
+		#browser()
 		plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim,
-           xlab=xlab, ylab=ylab, main=main, col=pCols[dose!=0], pch=pPchs[dose!=0], cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)
+           xlab=xlab, ylab=ylab, main=main, col=pCols[isTrt], pch=pPchs[isTrt], cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)
 		## more intuitive axis 
 	} else {
 		#browser()#simple no points
 		plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim,
-           xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, col=pCols[dose!=0], pch=pPchs[dose!=0], type='n')
+           xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, col=pCols[isTrt], pch=pPchs[isTrt], type='n')
 	}	
 	# only add the points if style is  full
 	if(style!='simple'){ # full or points
 		# points for dose=0
-		points(rep(log10(bot), length(ctrScaled)), ctrScaled, pch=8)	
+		if(hasCtrl)	points(rep(log10(bot), length(ctrScaled)), ctrScaled, pch=8)	
 	}
 	abline(h=h, col='grey')
 	### add curve from the fitted model
@@ -703,21 +772,20 @@ setMethod('plot', signature(x='drFit'),
 #' @param col line color (also applies to data points if show_points is TRUE 	   
 #' @param lwd line width  
 #' @param show_points whether to add points for dose-response paires (dose not 0) 
-#' @param pch pch for points	   
+#' @param pcol color for points; only relevant if show_points is TRUE
+#' @param pch pch for points; only relevant if show_points is TRUE	   
+#' @param ... additional parametrs passed to generic lines() function
 #' @aliases lines,drFit-method
 #' @export 
 setMethod('lines', signature(x='drFit'),
-    function(x, col=5, lwd=2, show_points=FALSE, pch=16) {
-	drMat <- x@originalDat
-	dose <- drMat[, 1]
-	response <- drMat[, 2]
-	ctr <- response[dose==0] # ctr measurements have dose=0
-	trt <- response[dose!=0] 
-	# scale the control and treatment effects with control mean
-	ctrScaled <- ctr/mean(ctr)
-	trtScaled <- trt/mean(ctr)
-#browser()
-	dose1 <- dose[dose!=0] # nonzero dosage
+    function(x, col=5, lwd=2, show_points=FALSE, pcol='black', pch=16, ...) {
+	resPrepDR <- x@info$resPrepDR # result of prep DR data 
+	datAll <- resPrepDR$datAll # scaled data including control (if available) and outliers
+	isTrt <- resPrepDR$isTrt # global indicator if data is treatment
+	dose <- datAll$dose # may include 0 dose
+	dose1 <- dose[isTrt]
+	trtScaled <- datAll$response[isTrt] # response at nonzero dosage
+	# setup grid	
 	gg <- format_grid(dose1)
 	top <- gg$top
 	bot <- gg$bot
@@ -727,10 +795,10 @@ setMethod('lines', signature(x='drFit'),
 	ind1 <- which(diff(log10(xGrid))>1e-3)
 	ind2 <- floor(seq(max(ind1)+1, length(xGrid), length.out=1000))
 	indSel <- c(ind1, ind2)
-	lines(log10(xGrid)[indSel], y[indSel], col=col, lwd=lwd)
+	lines(log10(xGrid)[indSel], y[indSel], col=col, lwd=lwd, ...)
 	# sometimes the added lines can be accompanied with points to show original data
 	if(show_points){
-		points(log10(dose1), trtScaled, col=col, pch=pch)
+		points(log10(dose1), trtScaled, col=pcol, pch=pch)
 	}
 	#lines(log10(xGrid), y, col=col, lwd=lwd)	  
 })		  

@@ -165,11 +165,6 @@ drexplorerGUI_2 <- function() {
 }
 #res <- drexplorerGUI_2()
 
-if(FALSE){
-dat <- read.csv('drexplorer/R/ryegrass.csv')
-#resL <- fitOneExp(dat, drug='Drug X', cellLine='Cell line A', models=c("LL.3", "LL.3u", "sigEmax", "logistic"), plot=TRUE, transparency=0.95)
-#resL <- fitOneExp(dat, drug='Drug X', cellLine='Cell line A', main='', ind2plot='best', cols='blue', models=c("LL.3", "LL.3u", "sigEmax", "logistic", "linlog"), plot=TRUE, transparency=0.95)
-resL <- fitOneExp(dat, drug='Drug X', cellLine='Cell line A', tag='', models=c("LL.3", "LL.3u", "sigEmax", "logistic"), plot=TRUE, transparency=0.95)
-}
+
 
 

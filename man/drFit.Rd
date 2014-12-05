@@ -3,7 +3,8 @@
 \alias{drFit}
 \title{Fit a dose-response model}
 \usage{
-drFit(drMat, modelName = "sigEmax", alpha = 0.01, fitCtr = FALSE)
+drFit(drMat, modelName = "sigEmax", alpha = 0.01, fitCtr = FALSE,
+  standardize = TRUE)
 }
 \arguments{
 \item{drMat}{dose-response matrix. the first column being dosage and second column being response. controls are included by specifying dose=0}

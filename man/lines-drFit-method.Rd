@@ -5,7 +5,7 @@
 \title{lines method for drFit object}
 \usage{
 \S4method{lines}{drFit}(x, col = 5, lwd = 2, show_points = FALSE,
-  pch = 16)
+  pcol = "black", pch = 16, ...)
 }
 \arguments{
 \item{x}{a drFit object}
@@ -16,7 +16,11 @@
 
 \item{show_points}{whether to add points for dose-response paires (dose not 0)}
 
-\item{pch}{pch for points}
+\item{pcol}{color for points; only relevant if show_points is TRUE}
+
+\item{pch}{pch for points; only relevant if show_points is TRUE}
+
+\item{...}{additional parametrs passed to generic lines() function}
 }
 \description{
 lines method for drFit object

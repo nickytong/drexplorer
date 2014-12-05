@@ -10,7 +10,7 @@ output:
 
 <!--
 %\VignetteEngine{knitr::rmarkdown}
-%\VignetteIndexEntry{Not an Introduction to knitr}
+%\VignetteIndexEntry{drexplorer user manual}
 -->
 
 ## Introduction
@@ -269,21 +269,42 @@ package, typing
 * **_drexplorerGUI\_1()_**
 
 in the R console will bring out the GUI for fitting dose-response curves. 
+
+This GUI assumes input file in comma-separated format or tab-delimited format. The first column is assumed to be dose and the
+second column is assumed to be response. An optional header can be provided in the first row. 
+Users can click the "Use example data" button for an example run using the 
+*ryegrass* data. Result files will be saved in a folder called **drexplorer_results** at 
+the working directory of R session including:  
+
+* DoseResponseCurve.pdf: the fitted dose response curve
+* ICtable.csv: estimated IC (inhibitory concentration) values at different percentiles.
+* ICtable.csv: outlier status for each data point
+
+Notice that example input file called ryegrass.csv will be dumped into the result folder if example data is used. 
+
 Similarly,  typing 
 
 * **_drexplorerGUI\_2()_**
 
-will bring out the GUI for drug-drug interaction analysis. In both case, example
-data sets have been attached. 
+will bring out the GUI for drug-drug interaction analysis. 
+
+Users can run the UMSCC22B data set or the nl22B2 data set by clicking the "Use UMSCC22B data" or the "Use nl22B2 data"
+buttons. Example input files (UMSCC22B.csv and nl22B2.csv) will be dumped into the result folder **drexplorer_results** after the example run.
+Similar to the previous GUI, input file can be either a comma-separated file or tab-delimited file. 
+Three columns are needed to run this GUI: 
+
+- The first column is assumed to be the dose of drug 1. 
+- The second column is assumed to be the dose of drug 2. 
+- The last column is assumed to be response under drug combinations. 
+
+A multi-page pdf file will be generated to save various
+plots (e.g. IAIplot_for_nl22B2.pdf). A comma-separated file will be generated to save estimates of IAI as well as 95% confidence
+interval (e.g. IAI_CI_nl22B2.csv).
 
 ## Session Info
 ```{r sessInfo, results='asis', echo=FALSE}
 sessionInfo()
 ```
-
-<!--     cd /data/bioinfo2/ptong1/Projects/Coombes/IC50Package/Package/for_vignettes; R0     -->       
-<!--     knitr::knit2html('drexplorer.Rmd')            -->
-<!--     rmarkdown::render('drexplorer.Rmd')            -->
 
 
 <a id="references"></a>
