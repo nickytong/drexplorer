@@ -16,7 +16,7 @@ The [**devtools** package](http://cran.r-project.org/web/packages/devtools/index
 
 ```r
     library(devtools)
-    install_github("drexplorer", "nickytong")
+    install_github("nickytong/drexplorer")
 ```
 
 ## Usage
