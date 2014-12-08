@@ -83,13 +83,13 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 				fits[[i]] <- tmfit
 			} else {
 				#fits[[i]] <- NULL: this makes length of fits != models
-				fits[[i]] <- NA
+				fits[[i]] <- NULL
 				warning(sprintf('Drug: %s CellLine: %s Model: %s failed!\n', drug, cellLine, models[i]))
 			}
 	}
 	#browser()
 	names(fits) <- models
-	indSuccess <- which(!sapply(fits, is.na))
+	indSuccess <- which(!sapply(fits, is.null))
 	###
 	# on 2014/04/16: remove sigEmax when its coef has NA
 	###
@@ -174,7 +174,7 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 	# therefore, cols should always have length of length(fitRes$models)
 	if(is.na(cols[1]) | length(cols)!=length(fitRes$models)) {
 		# when col is not specified, use the col in the model
-		warning('cols do not have the same length as number of models; using the cols attached to the fitted object!')
+		cat('cols do not have the same length as number of models; using the cols attached to the fitted object!')
 		col_use <- fitRes$cols
 	} else {
 		col_use <- cols # use the col specified when length matches

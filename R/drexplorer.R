@@ -482,10 +482,11 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=-In
 	tag <- drFit@tag
 	res <- NA
 	dose <- drFit@originalDat[, 1]
-	if(missing(lower)) lower <- min(c(1e-30, min(dose)))
+	#if(missing(lower)) lower <- min(c(1e-30, min(dose)))
+	if(missing(lower)) lower <- 1e-60 # cannot allow log(lower)=log(0) as uniroot lower bound
 	#if(missing(upper)) upper <- max(dose)*1e60
 	# modified on 02/22/2014: upper too large makes f(d) Nan in sigEmax. sigEmax is between e0+eMax ~ e0
-	if(missing(upper)) upper <- 1e10 # assume maximum dose will not exceed 1e10
+	if(missing(upper)) upper <- 1e60 # assume maximum dose will not exceed 1e10
 	myIC <- percent #
 	if(tag=="drc"){
 		objFct <- drFit@fit$fct
