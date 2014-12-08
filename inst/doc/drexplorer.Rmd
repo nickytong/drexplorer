@@ -146,7 +146,7 @@ computeIC(fit_sigEmax_alpha_o5, percent=seq(0, 1, by=0.1), log.d=FALSE, interpol
 computeIC(fit_sigEmax_alpha_o5, percent=seq(0, 1, by=0.1), log.d=FALSE, interpolation=FALSE)
 ```
 
-\section{Comparing multiple dose-response curves}
+## Comparing multiple dose-response curves
 We provide S4 generic functions (plot and lines) for fitted model. As a result, it is easy to compare different models 
 and graphically examine outliers through multiple dose-response curves.
 
@@ -182,8 +182,10 @@ lines(fit.sigEmax, col=6, lwd=2)
 legend("bottomleft", c('alpha=0.05', 'ignored'), col=c(6, 7), lwd=3)
 ```
 
+## Wrapper Functions 
+
 We provide a wrapper function (fitOneExp) incorporating outlier detection, fitting multiple models, selecting the best model and estimating IC values. 
-Users can specify multiple models from the **drc** and **DoseFinding** packages using the models parameter. An example is shown below.
+Users can specify multiple models from the **drc** and **DoseFinding** packages using the *models* parameter. An example is shown below.
 
 ```{r}
 fitExp <- fitOneExp(ryegrass[, c(2, 1)], drug='', cellLine='', unit='', models=c('sigEmax', 'LL.4', 'LL.5', 'LL.3', 'LL.3u', 'logistic'), alpha=0.05, interpolation=TRUE)
