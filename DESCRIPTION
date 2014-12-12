@@ -1,8 +1,8 @@
 Package: drexplorer
 Type: Package
 Title: Dose-response Explorer
-Version: 1.0.3
-Date: 2014-12-05
+Version: 1.0.4
+Date: 2014-12-12
 Author: Pan Tong, Kevin R Coombes
 Maintainer: Pan Tong <ptong1@mdanderson.org>
 Description: There is a great variety of models developed for dose-response

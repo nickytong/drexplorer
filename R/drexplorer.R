@@ -14,6 +14,17 @@
 #' @seealso \code{\link{NewmanTest}}
 NULL
 
+#'  ryegrass dataset from drc package
+#'
+#' This dataset is from the ryegrass data in drc package. It is a 2 column data frame where the conc column is the concentration of ferulic acid in mM
+#' and rootl column is the root length of ryegrass. 
+#'
+#'
+#' @references Inderjit and J. C. Streibig, and M. Olofsdotter (2002) Joint action of phenolic acid mixtures and its
+#' significance in allelopathy research, Physiologia Plantarum, 114, 422–428, 2002
+#' @name ryegrass
+NULL
+
 
 
 ### 0.9.4: add RSE in the model fitting
@@ -465,12 +476,20 @@ setMethod('predict', signature(object='drFit'),
 
 
 ### find IC values by univariate rootfinding from fitted curve. options in uniroot can be specified
-# use dmin to indicate non-achievable IC due to to small IC (drug too effective based on the curve)
+# use dmin to indicate non-achievable IC due to to small IC (drug too effective based on the curve): this is original scale, so minimum dose is 0
 # use dmax to indicate non-achievable IC due to to high IC (drug too ineffective based on the curve)
 # 2014/11/28: to make the function more general, percent means desired response from fitted model, not IC. Thus, percent
 #   essentially can be negative. computeIC function needs to convert between IC and percent (response) by: 1-x(IC)/100=percent
 # percent is actually desired response here
-RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=-Inf, dmax=Inf, ...) {
+#
+# Sometimes, the curve is increasing (e.g. due to experimental noise or unknown reason). We need rule to override the model based estimate for response out of the range
+# Notice this rule only deals with cases where required response is out of range. The emirical rule solved flat curve when cell line is extremely sensitive (e.g. y=0.1). 
+# If the curve is increasing from 0.1 to 0.9, such rule might be wrong
+# This rule also applies to interpolation case
+# Empirical rule:
+#	(1) myIC is out of range, then assign dmin or dmax based on if myIC is larger than largest or smaller than smallest
+#	(2) myIC is within range, then root finding
+RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=0, dmax=Inf, ...) {
 	#### the predicted response is bounded with theoretical lower and upper bound. When the required response specified by IC is out of the theoretical range, we need to specify the returned dose
 	#### originally we specify NA, in which case we may get IC50=NA, which can be due to too sensitive or too negative. Thus, it is better to give a value.
 	#### we assign dmin for the scaled response larger than theoretical response; we assign dmax for response smaller than theretical minimum response.
@@ -505,6 +524,13 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=-In
 		#ymax <- f.drc(d=lower, parm=t(pm), IC=0)
 		ymin <- fl.drc(ld=log(upper), parm=t(pm), IC=0)
 		ymax <- fl.drc(ld=log(lower), parm=t(pm), IC=0)
+		# in case the curse is increasing, ymax < ymin
+		# we swap them
+		if(ymax < ymin) {
+			tt <- ymax
+			ymax <- ymin
+			ymin <- tt
+		}
 		#browser()
 		if(myIC>ymax) {
 			res <- dmin # required response > theoretical maximum response, throw NA
@@ -527,6 +553,14 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=-In
 		}
 		ymax <- fl.DoseFinding(ld=log(lower), coef=coy, IC=0)
 		ymin <- fl.DoseFinding(ld=log(upper), coef=coy, IC=0)
+		#browser()
+		# in case the curse is increasing, ymax < ymin
+		# we swap them
+		if(ymax < ymin) {
+			tt <- ymax
+			ymax <- ymin
+			ymin <- tt
+		}
 		# y at dose=d:  f.DoseFinding(d=0, coef=coy, IC=0)
 		#myf(3.75, coef=coy, IC=0.5)
 		#res <- uniroot(f.DoseFinding, coef=coy, IC=percent, lower=lower, upper=upper, ...)$root
@@ -536,11 +570,13 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=-In
 		} else if(myIC<ymin){
 			res <- dmax # required response < theoretical minimum response, throw NA
 		} else {	
+			# now myIC is between ymax and ymin
 			res <- exp(uniroot(fl.DoseFinding, coef=coy, IC=myIC, lower=log(lower), upper=log(upper), ...)$root)
 		}	
 	}
 	if(log.d) res <- log10(res)
 	names(res) <- paste('response_', percent, sep='')
+	#browser()
 	res
 }
 
@@ -634,18 +670,32 @@ computeIC <- function(drFit, percent=0.50, log.d=TRUE, interpolation=TRUE, stepL
 # computeIC(fit_sigEmax_alpha_o5, percent=0.5, log.d=TRUE, niter=500)
 
 ### IC by interpolation of predicted responses
+# Sometimes, the curve is increasing (e.g. due to experimental noise or unknown reason). We need rule to override the model based estimate for response out of the range
+# Notice this rule only deals with cases where required response is out of range
+# Empirical rule:
+#	(1) myIC is out of range, then assign dmin or dmax based on if myIC is larger than largest or smaller than smallest
+#	(2) myIC is within range, then root finding
 icByInterpolation <- function(perc, xv, yv, ubound=max(xv), lbound=min(xv)){
 	#browser()
 	#perc <- 1- perc # revert to biological IC starting from 0.9.5
 	# 2014/11/28: perc is the desired response now
 	av <- abs(yv-perc)
 	wv <- which(av==min(av))[1]
-	ic <- xv[wv]
+	yr <- range(yv, na.rm=TRUE)
+	if(perc>yr[2]){ # response too large
+		ic <- lbound 
+	} else if(perc<yr[1]) { # response too small
+		ic <- ubound
+	} else { # response in range
+		ic <- xv[wv]
+	}
 	#browser()
 	## modified on 02/22/2014: this fixed that interpolated IC might be larger than maximum dose
 	#if (min(yv) > perc) ic <- ubound ## saturated case
+	# truncation
 	if (ic>ubound) ic <- ubound ## saturated case
 	if (ic < lbound) ic <- lbound
+	#browser()
 	ic
 }
 #computeIC(fit_sigEmax_alpha_o5, percent=0.6, log.d=T, interpolation=TRUE)

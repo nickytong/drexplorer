@@ -55,8 +55,6 @@ for outlier status will be removed; if style=='points', only points will be show
 \item{cex.lab}{cex for axis label}
 
 \item{addOutlierLegend}{whether to add legend for outlier status}
-
-\item{cex.main}{cex for main title}
 }
 \description{
 plot dose response curve from fitOneExp() result

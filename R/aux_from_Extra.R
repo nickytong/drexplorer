@@ -160,7 +160,6 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 #' @param posLegend position of legend for model information 
 #' @param showTopN if specified show best N model in figure to avoid busy plotting; otherwise show all successful models. 
 #' @param lwd line width for the curves
-#' @param cex.main cex for main title
 #' @param cex.axis cex for axis annotation
 #' @param cex.lab cex for axis label
 #' @param addOutlierLegend whether to add legend for outlier status

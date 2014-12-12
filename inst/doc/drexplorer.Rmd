@@ -53,7 +53,7 @@ library(drexplorer)
 
 ```{r}
 #library(drc)
-data(ryegrass, package='drc')
+#data(ryegrass, package='drc')
 dose <- ryegrass[, 2]
 response <- ryegrass[, 1]
 ```
@@ -138,8 +138,13 @@ Computing IC values at different quantiles is also easy. Similar to the fitDRC()
 can be specified in estimating IC value. 
 
 Below we estimate IC50 at different percentiles with the sigmoid Emax model with outlier removal (alpha=0.05) fitted previously. We see that 
-estimates from interpolation and prediction by the model are quite similar except for IC100 where Inf is returned since the fitted
-model cannot achieve 100% killing effect (see figure below). 
+estimates from interpolation and prediction (may be extrapolated) by the model are quite similar except for IC0 and IC100.  IC100 from prediction is Inf since the fitted
+model cannot achieve 100% killing effect (see figure below). IC100 from interpolation is the maximum dose (30 in this case) which is a truncated estimate.
+Similarly, since IC0 is not achievable within the observed dose, the prediction estimate of 0.86 is smaller than the minimum dose (0.94). 
+The predicted IC value has advantage over interpolated IC value in the sense that it is not truncated. However, since the value might be extrapolated (estimate being outside of
+observed dose range), the estimate is more variable. 
+
+
 
 ```{r}
 computeIC(fit_sigEmax_alpha_o5, percent=seq(0, 1, by=0.1), log.d=FALSE, interpolation=TRUE)
@@ -225,7 +230,7 @@ Below we load the UMSCC22B data from [Lee, J. J., & Kong, M. (2009)](#lee2009con
 as well as its confidence interval after specifying dose1, dose2 and effect (between 0 and 1). 
 
 ```{r}
-data(UMSCC22B)	
+#data(UMSCC22B)	
 fit_fixedRay <- fitIAI(d1=UMSCC22B[, 1], d2=UMSCC22B[, 2], 
 			e=UMSCC22B[, 3], name1='SCH66336', name2='4HPR')
 ```
@@ -268,7 +273,7 @@ plotIAI(fit_fixedRay, type='medianEffect')
 In [Lee, J. J., Kong, M., Ayers, G. D., & Lotan, R. (2007)](#lee2007interaction), there is an example data (nl22B2) using grid design. Here we examine the estimate of IAI at different fixed ratios.
 
 ```{r}
-data(nl22B2)	
+#data(nl22B2)	
 fit_allPoss_1 <- fitIAI(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1, name1='SCH66336', name2='4HPR',d2.d1.force=1)
 fit_allPoss_2 <- fitIAI(d1=nl22B2$schd, d2=nl22B2$hpr, e=nl22B2$y1, name1='SCH66336', name2='4HPR',d2.d1.force=2)
 ```
