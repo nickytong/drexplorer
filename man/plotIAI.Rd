@@ -4,7 +4,7 @@
 \title{Visualize interaction index}
 \usage{
 plotIAI(fit, type = c("IAI", "medianEffect", "doseResponseCurve", "contour"),
-  contour.level = (1:9)/10, ylim = NULL, mode = "both")
+  contour.level = (1:9)/10, ylim = NULL, mode = "both", logd = FALSE)
 }
 \arguments{
 \item{fit}{the fitted result from fitIAI()}

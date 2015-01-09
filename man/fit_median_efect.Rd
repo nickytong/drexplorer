@@ -27,5 +27,6 @@ a list
 \description{
 notice that the median-effect model is a special case of the sigma Emax model;
 3 linear models are fitted; fixed ratio thus is required.
+all 3 linear models are fitted using logit(E) ~ log(d1+d2) using a subset of the data depending on if the data is for durg 1, drug 2 and the mixture
 }
 

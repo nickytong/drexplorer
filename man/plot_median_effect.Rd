@@ -4,7 +4,7 @@
 \title{generate plot for the fit from median-effect model}
 \usage{
 plot_median_effect(medianEffect, type = c("medianEffect", "doseResponseCurve",
-  "contour"), contour.level = (1:9)/10)
+  "contour"), contour.level = (1:9)/10, logd = FALSE)
 }
 \arguments{
 \item{medianEffect}{the fitted result by fit_median_efect()}
@@ -12,6 +12,8 @@ plot_median_effect(medianEffect, type = c("medianEffect", "doseResponseCurve",
 \item{type}{type of plot, options are from c('medianEffect', 'doseResponseCurve', 'contour')}
 
 \item{contour.level}{levels (between 0 and 1 representing different response values) to draw contour plot}
+
+\item{logd}{whether to plot logd in Dose-response curve; only effective yf type=='doseResponseCurve'}
 }
 \description{
 generate plot for the fit from median-effect model
