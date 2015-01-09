@@ -163,7 +163,9 @@ plot_median_effect <- function(medianEffect, type=c('medianEffect', 'doseRespons
 			if(logd){
 				#browser()
 				dose <- with(medianEffect, seq(0,max(totdose[ind2], na.rm=TRUE),max(totdose[ind2], na.rm=TRUE)/100))
-            	with(medianEffect, plot(log(totdose[ind2]),fa[ind2],type='n',xlab='Log(Dose)',ylab='Relative viability', ylim=c(0, 1), xlim=c(min(log(dose), max(log(dose))))))
+				dd <- c(dose, with(medianEffect, c(dose1, dose2)))
+				mindose <- min(log(dd[dd!=0]))
+            	with(medianEffect, plot(log(totdose[ind2]),fa[ind2],type='n',xlab='Log(Dose)',ylab='Relative viability', ylim=c(0, 1), xlim=c(mindose, max(log(dose)))))
             	#y1<-with(medianEffect, 1.0/(1.0+(dm1/dose)^(summary(lm1)$coef[2,1])))
             	with(medianEffect, lines(log(dose), with(medianEffect, 1.0/(1.0+(dm1/dose)^(summary(lm1)$coef[2,1]))),type="l",lty=3))
             	with(medianEffect, points(log(dose1[dose2==0]),fa[dose2==0],pch=1))
