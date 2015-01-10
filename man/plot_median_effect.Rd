@@ -4,7 +4,7 @@
 \title{generate plot for the fit from median-effect model}
 \usage{
 plot_median_effect(medianEffect, type = c("medianEffect", "doseResponseCurve",
-  "contour"), contour.level = (1:9)/10, logd = FALSE)
+  "contour"), contour.level = (1:9)/10, logd = FALSE, align = TRUE)
 }
 \arguments{
 \item{medianEffect}{the fitted result by fit_median_efect()}
@@ -13,7 +13,10 @@ plot_median_effect(medianEffect, type = c("medianEffect", "doseResponseCurve",
 
 \item{contour.level}{levels (between 0 and 1 representing different response values) to draw contour plot}
 
-\item{logd}{whether to plot logd in Dose-response curve; only effective yf type=='doseResponseCurve'}
+\item{logd}{whether to plot logd in Dose-response curve; only effective if type=='doseResponseCurve'}
+
+\item{align}{whether to align dose range. Imagine that 2 drugs are mixed in fixed ratio, the doses in one drug will have low doses that the other drug and mixture do not have
+which some biologists deams as a waste of graphic region. An easy fix is to truncate xlim. this is only only effective if type=='doseResponseCurve'}
 }
 \description{
 generate plot for the fit from median-effect model

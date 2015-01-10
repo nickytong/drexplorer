@@ -143,8 +143,10 @@ fit_median_efect <- function(d1, d2, e, name1='Drug A', name2='Drug B', d2.d1, b
 #' @param medianEffect the fitted result by fit_median_efect()
 #' @param type type of plot, options are from c('medianEffect', 'doseResponseCurve', 'contour')
 #' @param contour.level levels (between 0 and 1 representing different response values) to draw contour plot
-#' @param logd whether to plot logd in Dose-response curve; only effective yf type=='doseResponseCurve'
-plot_median_effect <- function(medianEffect, type=c('medianEffect', 'doseResponseCurve', 'contour'), contour.level=(1:9)/10, logd=FALSE){
+#' @param logd whether to plot logd in Dose-response curve; only effective if type=='doseResponseCurve'
+#' @param align whether to align dose range. Imagine that 2 drugs are mixed in fixed ratio, the doses in one drug will have low doses that the other drug and mixture do not have 
+#'  which some biologists deams as a waste of graphic region. An easy fix is to truncate xlim. this is only only effective if type=='doseResponseCurve'
+plot_median_effect <- function(medianEffect, type=c('medianEffect', 'doseResponseCurve', 'contour'), contour.level=(1:9)/10, logd=FALSE, align=TRUE){
 	if(type=='medianEffect'){
 			plot(medianEffect$logd,medianEffect$resp,type='n',xlab=sprintf('Log(Dose)'),ylab='Log(E/(1-E))', 
 				main=sprintf('Median Effect Plot \n-- d2.d1=%.1f', medianEffect$d2.d1))
@@ -163,8 +165,12 @@ plot_median_effect <- function(medianEffect, type=c('medianEffect', 'doseRespons
 			if(logd){
 				#browser()
 				dose <- with(medianEffect, seq(0,max(totdose[ind2], na.rm=TRUE),max(totdose[ind2], na.rm=TRUE)/100))
-				dd <- c(dose, with(medianEffect, c(dose1, dose2)))
-				mindose <- min(log(dd[dd!=0]))
+				if(align){
+					mindose <- 	min(log(dose[dose!=0]))
+				} else {
+					dd <- c(dose, with(medianEffect, c(dose1, dose2)))
+					mindose <- min(log(dd[dd!=0]))
+            	}
             	with(medianEffect, plot(log(totdose[ind2]),fa[ind2],type='n',xlab='Log(Dose)',ylab='Relative viability', ylim=c(0, 1), xlim=c(mindose, max(log(dose)))))
             	#y1<-with(medianEffect, 1.0/(1.0+(dm1/dose)^(summary(lm1)$coef[2,1])))
             	with(medianEffect, lines(log(dose), with(medianEffect, 1.0/(1.0+(dm1/dose)^(summary(lm1)$coef[2,1]))),type="l",lty=3))
@@ -283,8 +289,10 @@ fitIAI <- function(d1, d2, e, E=seq(0.05, 0.95, 0.005), name1='Drug A', name2='D
 #' @param contour.level contour level. only effective if type='contour'
 #' @param ylim y axis limit
 #' @param mode specify if to plot against response, dose or both. only effective if type=='IAI'. can be either 'response', 'dose', or 'both'
+#' @param logd logd passed to plot_median_effect
+#' @param align align passed to plot_median_effect
 #' @export
-plotIAI <- function(fit, type=c('IAI', 'medianEffect', 'doseResponseCurve', 'contour'), contour.level=(1:9)/10, ylim=NULL, mode='both', logd=FALSE){
+plotIAI <- function(fit, type=c('IAI', 'medianEffect', 'doseResponseCurve', 'contour'), contour.level=(1:9)/10, ylim=NULL, mode='both', logd=FALSE, align=TRUE){
 	if(type=='IAI' & !is.null(fit$CI)){
 		resCI <- fit$CI
 		#browser()
@@ -347,7 +355,7 @@ plotIAI <- function(fit, type=c('IAI', 'medianEffect', 'doseResponseCurve', 'con
 		if(type=='contour'){
 			plot_median_effect(medianEffect, type=type, contour.level=contour.level) 
 		} else {
-			plot_median_effect(medianEffect, type=type, logd=logd)   
+			plot_median_effect(medianEffect, type=type, logd=logd, align=align)   
 		}	
 	}
 }

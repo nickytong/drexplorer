@@ -4,7 +4,8 @@
 \title{Visualize interaction index}
 \usage{
 plotIAI(fit, type = c("IAI", "medianEffect", "doseResponseCurve", "contour"),
-  contour.level = (1:9)/10, ylim = NULL, mode = "both", logd = FALSE)
+  contour.level = (1:9)/10, ylim = NULL, mode = "both", logd = FALSE,
+  align = TRUE)
 }
 \arguments{
 \item{fit}{the fitted result from fitIAI()}
@@ -16,6 +17,10 @@ plotIAI(fit, type = c("IAI", "medianEffect", "doseResponseCurve", "contour"),
 \item{ylim}{y axis limit}
 
 \item{mode}{specify if to plot against response, dose or both. only effective if type=='IAI'. can be either 'response', 'dose', or 'both'}
+
+\item{logd}{logd passed to plot_median_effect}
+
+\item{align}{align passed to plot_median_effect}
 }
 \description{
 Visualize interaction index
