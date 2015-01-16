@@ -820,7 +820,7 @@ setMethod('plot', signature(x='drFit'),
 ## @rdname drFit-class
 #' lines method for drFit object
 #' @param x a drFit object	   
-#' @param col line color (also applies to data points if show_points is TRUE 	   
+#' @param col line color
 #' @param lwd line width  
 #' @param show_points whether to add points for dose-response paires (dose not 0) 
 #' @param pcol color for points; only relevant if show_points is TRUE
