@@ -42,6 +42,11 @@ A [mannual](http://htmlpreview.github.com/?https://github.com/nickytong/drexplor
 ```r
 vignette('drexplorer')
 ```
+## Cite Us
+The [**devtools** package] has been published in Bioinformatics which can be cited as:
+
+Tong, Pan, Coombes, Kevin R., Johnson, Faye M., Byers, Lauren A., Diao, Lixia, Liu, Diane D., . . . Wang, Jing. (2015). drexplorer: A tool to explore dose–response relationships and drug–drug interactions. Bioinformatics. 
+
 
 ## Build Status
 [Travis

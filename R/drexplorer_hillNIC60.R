@@ -16,10 +16,13 @@ fHill <- function(Dose, Einf, E0, logEC50, HS) {
 
 #' fit Hill equation on dose response data
 #'
+#' This function implements S3-style OOP. Methods such as predict, plot and lines are available.
 #' Notice that control data (dose=0) is usually not fitted (supplied) in Hill equation.
 #'
 #' @param d dose original dose
 #' @param y response relative viability 
+#' @return it returns a hillFit object consisting a vector of estimations for 'E0', 'Einf', 'EC50', 'HS', 'Emax', 
+#' 'MSE' (Mean Squared Error), 'Rsq' (R squared), 'RSE' (Residual Standard Error)
 #' @export
 hillFit <- function(d, y){
 	if(length(d)!=length(y)){
@@ -27,7 +30,7 @@ hillFit <- function(d, y){
 	}
 	dat <- data.frame(dose=d, response=y)
 	fit <- try(nls(y ~ Einf + (E0-Einf) /(1+(dose/exp(logEC50))^HS), start=list(E0=1, Einf=0, logEC50=log(median(dat$dose)), HS=1), 
-		algorithm="port", data=dat), silent=TRUE)
+		algorithm="port", control=list(maxiter=5000, warnOnly=FALSE), data=dat), silent=TRUE)
 	#browser()
 	res <- rep(NA, 8)
 	names(res) <- c('E0', 'Einf', 'EC50', 'HS', 'Emax', 'MSE', 'Rsq', 'RSE')
@@ -46,7 +49,7 @@ hillFit <- function(d, y){
 		res['MSE'] <- MSE
 		res['Rsq'] <- Rsq
 		res['RSE'] <- rse
-		res['Emax'] <- predict(fit, list(dose=max(d, na.rm=T))) # response at maximum dose
+		res['Emax'] <- predict(fit, list(dose=max(d, na.rm=T))) # response at maximum dose using nls predict method
 	}	
 	#browser()
 	attr(res, 'class') <- c('numeric', 'hillFit')
@@ -132,23 +135,32 @@ lines.hillFit <- function(fit, col=1, lwd=2, show_points=FALSE, pcol='black', pc
 
 #' implementation of NCI60 method (GI50, TGI, LC50) for dose response data
 #'
+#' This function implements S3-style OOP. Methods such as predict, plot and lines are available.
 #' Notice that here the response is assumed to be calculated as in: http://dtp.nci.nih.gov/branches/btb/ivclsp.html. The response has range
 #' -1 to 1. 
+#' The original NCI60 method applies linear interpolation to estimate GI50, TGI and LC50. Tong, F. P. improved this by using 4-parameter
+#' logistic model, which is the LL.4 model in drexplorer (from drc package). Here we use LL.4 model to estimate GI50, TGI and LC50.
 #'
 #' @param d dose original dose
 #' @param y response percentage of growth inhibition as defined by NCI60 method
+#' @param interpolation whether to use interpolatuon to estimat GI50, TGI and LC50.
+#' @param log.d whether to return log10 transformed value for GI50, TGI and LC50 (the dose concentration)
+#' @return a nci50Fit object consisting different attributes. It includes a vector with GI50, TGI and LC50. 
 #' @export
 #' @references Shoemaker, R. H. The NCI60 Human Tumour Cell line Anticancer Drug Screen. Nature Reviews, 6: 813-823, 2006.
-nci60Fit <- function(d, y, interpolation=FALSE){
+#' @references Tong, F. P. (2010). Statistical Methods for Dose-Response Assays.
+nci60Fit <- function(d, y, interpolation=FALSE, log.d=FALSE){
 	#browser()
 	dat <- data.frame(dose=d, response=y)
 	fit <- drFit(drMat=dat, modelName='LL.4', standardize=F)
 	#m1 <- drm(y~d, fct = LL.4())
-	res <- findDoseGivenResponse(fit, response=c(0.5, 0, -0.5), interpolation=interpolation)
+	res <- findDoseGivenResponse(fit, response=c(0.5, 0, -0.5), interpolation=interpolation, log.d=log.d)
+	base <- ifelse(log.d, 10, 1)
 	names(res) <- c('GI50', 'TGI', 'LC50')
 	attr(res, 'class') <- c('numeric', 'nci60Fit')
 	attr(res, 'fitDat') <- dat
 	attr(res, 'fit') <- fit
+	attr(res, 'base') <- base
 	#browser()
 	res
 }
@@ -206,7 +218,12 @@ plot.nci60Fit <- function(fit, xlab="Log10(Dose)", ylab="Relative growth", main=
 	with(fitDat, plot(log10(dose), response, 
 		xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim, cex.main=cex.main, cex.axis=cex.axis))
 	#browser()
+	#xlim1 <- xlim[1]
+	#segments(xlim1, 0.5, fit['GI50'], 0.5, lty=2, col='gray')
+	#segments(xlim1, 0.0, fit['TGI'], 0.0, lty=2, col='gray')
+	#segments(xlim1, -0.5, fit['LC50'], -0.5, lty=2, col='gray')
 	lines(log10(xGrid)[indSel], y[indSel], col=lcol, lwd=lwd)
+
 	#browser()
 	abline(h=h, col='grey')
 } 
@@ -254,7 +271,8 @@ hillFit_optim <- function(d, y, inits=NULL){
 	temp <- optimRes$par
 	res[1:4] <- temp
 	res['EC50'] <- exp(temp[3])
-	res['RSS'] <- optimRes$value
+	rss <- optimRes$value
+	#res['RSS'] <- optimRes$value
 	if(class(optimRes)!='try-error'){
 			temp <- optimRes$par
 			#res[1:6] <- c(0, temp[1], 0, temp[2], temp[3], optimRes$value)

@@ -13,6 +13,7 @@
 #' @param percentile IC percentile
 #' @param alpha outlier significance level
 #' @param fitCtr whether the model is fitted with control data
+#' @param standardize whether to standardize (scale) the data based on control points. This should be disabled when no control data is supplied
 #' @param interpolation whether calculate ICx through interpolation or through root finding. This parameter is passed to computeIC() function. When interpolation=TRUE,
 #' ICx value will be bounded by observed minimum and maximum dose; otherwise, ICx is calculated through root finding and thus can be outside this boundary (extrapolated). 
 #' @param plot whether to draw the dose response curve
@@ -47,6 +48,7 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 					 percentile=seq(0.1, 0.9, by=0.1), # IC percentile
 					 alpha=0.01, # outlier significance level
 					 fitCtr=FALSE, # whether the model is fitted with control data
+					 standardize=TRUE, # whether to standardize the data based on control
 					 interpolation=TRUE, # interpolation for IC or not
 					plot=FALSE, transparency=1, ...){
 	require(drexplorer)
@@ -71,13 +73,14 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 	#resp <- dat[, 2]
 	drMat <- dat
 	#indCtrl <- which(round(dose, 5)==0) # dose = 0 at precision 1e-5 would be accepted as control
-	indtrt <- which(round(dose, 5)!=0) # dose = 0 at precision 1e-5 would be accepted as control
+	indtrt <- which(round(dose, 15)!=0) # dose = 0 at precision 1e15 (not enough for 1e-5) would be accepted as control
+	#browser()
 	dmin <- min(dose[indtrt], na.rm=TRUE)
 	dmax <- max(dose[indtrt], na.rm=TRUE)
 	indicator <- drOutlier(drMat=drMat, alpha=alpha) 
 	fits <- vector('list')
 	for(i in 1:length(models)){
-			tmfit <- try(drFit(drMat=drMat, modelName = models[i], alpha=alpha, fitCtr=fitCtr), silent=TRUE)
+			tmfit <- try(drFit(drMat=drMat, modelName = models[i], alpha=alpha, fitCtr=fitCtr, standardize=standardize), silent=TRUE)
 			## some model fails to model the data and numerically not computable by the original packages
 			if(class(tmfit)!='try-error') {
 				fits[[i]] <- tmfit
@@ -173,13 +176,13 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 	# therefore, cols should always have length of length(fitRes$models)
 	if(is.na(cols[1]) | length(cols)!=length(fitRes$models)) {
 		# when col is not specified, use the col in the model
-		cat('cols do not have the same length as number of models; using the cols attached to the fitted object!')
+		warning('cols do not have the same length as number of models; using the cols attached to the fitted object!\n')
 		col_use <- fitRes$cols
 	} else {
 		col_use <- cols # use the col specified when length matches
 	}
 	plotBest <- ifelse(!is.na(ind2plot[1]) & ind2plot[1]=='best', TRUE, FALSE)
-	if(plotBest & length(cols)==1){
+	if(plotBest & length(cols)==1 & !is.na(cols)){
 		# the only case to specify incompatible cols is when only plot the best model: populate all cols as the only col specified to get it done
 		col_use <- rep(cols, length(fitRes$models))
 	}
@@ -215,7 +218,7 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 		ind2plot <- which(models==bestModel)
 	}
 	#browser()
-	if(length(ind2plot)>1)  {# when there are multiple curves to plot, type must be plot and additional lines 
+	if(length(ind2plot)>=1)  {# when there are multiple curves to plot, type must be plot and additional lines 
 		type='plot'
 	}
 	#browser()

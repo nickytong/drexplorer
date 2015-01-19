@@ -13,7 +13,7 @@ all data, set alpha=1.}
 
 \item{fitCtr}{A logic vector specifying whether to include the control points into the model fitting.}
 
-\item{standardize}{whether to standardize (scale) the data}
+\item{standardize}{whether to standardize (scale) the data based on control points. This should be disabled when no control data is supplied}
 }
 \value{
 a list

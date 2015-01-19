@@ -74,6 +74,8 @@ NULL
 NewmanTest <- function(ref, obs, alpha=0.01, recursive=FALSE){
 	check.alpha(alpha)
 	indicator <- rep(FALSE, length(obs))
+	if(alpha[1]==1) 
+		return(indicator) # at significance level 1, no outlier at all
 	f <- sum(!is.na(ref))-1 # f defined in the paper 
 	n <- sum(!is.na(obs)) # n defined in the paper
 	#if(!(f %in% c(5:20, 24, 30, 40, 60)) | !(n %in% c(3:12, 20))) 
@@ -90,8 +92,6 @@ NewmanTest <- function(ref, obs, alpha=0.01, recursive=FALSE){
 	if(alpha==0.05) tab <- fivePercentTab
 	cutoff <- tab[as.character(f), as.character(n)]
 #browser()
-	if(alpha[1]==1) 
-		return(indicator) # at significance level 1, no outlier at all
 	if(q>cutoff) {
 		temp <- obs-median(obs, na.rm=TRUE)
 		if(abs(min(temp, na.rm=TRUE))>abs(max(temp, na.rm=TRUE)))
@@ -308,7 +308,7 @@ noNA <- function (dat)
 #' @param alpha a scalar for significance level. This specifies the significance level to identify outliers which will be excluded from model fitting. To include
 #'  all data, set alpha=1. 
 #' @param fitCtr A logic vector specifying whether to include the control points into the model fitting.
-#' @param standardize whether to standardize (scale) the data
+#' @param standardize whether to standardize (scale) the data based on control points. This should be disabled when no control data is supplied
 #' @return a list
 prepDRdat <- function(drMat, alpha=0.01, fitCtr=FALSE, standardize=TRUE){
 	# if drMat itself is scaled data, then outlier remover is on scaled data
@@ -363,6 +363,7 @@ prepDRdat <- function(drMat, alpha=0.01, fitCtr=FALSE, standardize=TRUE){
 #' @param alpha a scalar for significance level. This specifies the significance level to identify outliers which will be excluded from model fitting. To include
 #'  all data, set alpha=1. 
 #' @param fitCtr A logic vector specifying whether to include the control points into the model fitting.
+#' @param standardize whether to standardize (scale) the data based on control points. This should be disabled when no control data is supplied
 #' @return the function returns a drFit S4 object.
 #' @export
 #' @seealso \code{\link{NewmanTest}, \link{drOutlier}, \link{drModels}, \link{drFit-class}}
@@ -809,11 +810,14 @@ setMethod('plot', signature(x='drFit'),
 	ind2 <- floor(seq(max(ind1)+1, length(xGrid), length.out=1000))
 	indSel <- c(ind1, ind2)
 	#lines(log10(xGrid), y, col=col, lwd=lwd)
+	#browser()
 	lines(log10(xGrid)[indSel], y[indSel], col=col, lwd=lwd)
 	## add legend
 	#if(addLegend) legend("topright", c("okay", "95%", "99%"), col=cols, pch=pchs) ## use significance level to remove confusion (modified on 09/03/2013)
 	if(style!='full')
 		addLegend <- FALSE # simple style removes the outlier status
+	# if alpha=1, of course no need for legend
+	if(x@alpha==1) addLegend <- FALSE
 	if(addLegend) legend("topright", c("okay", "5%", "1%"), col=cols, pch=pchs, bty=bty)
 	#browser()
 })

@@ -3,18 +3,30 @@
 \alias{nci60Fit}
 \title{implementation of NCI60 method (GI50, TGI, LC50) for dose response data}
 \usage{
-nci60Fit(d, y, interpolation = FALSE)
+nci60Fit(d, y, interpolation = FALSE, log.d = FALSE)
 }
 \arguments{
 \item{d}{dose original dose}
 
 \item{y}{response percentage of growth inhibition as defined by NCI60 method}
+
+\item{interpolation}{whether to use interpolatuon to estimat GI50, TGI and LC50.}
+
+\item{log.d}{whether to return log10 transformed value for GI50, TGI and LC50 (the dose concentration)}
+}
+\value{
+a nci50Fit object consisting different attributes. It includes a vector with GI50, TGI and LC50.
 }
 \description{
+This function implements S3-style OOP. Methods such as predict, plot and lines are available.
 Notice that here the response is assumed to be calculated as in: http://dtp.nci.nih.gov/branches/btb/ivclsp.html. The response has range
 -1 to 1.
+The original NCI60 method applies linear interpolation to estimate GI50, TGI and LC50. Tong, F. P. improved this by using 4-parameter
+logistic model, which is the LL.4 model in drexplorer (from drc package). Here we use LL.4 model to estimate GI50, TGI and LC50.
 }
 \references{
 Shoemaker, R. H. The NCI60 Human Tumour Cell line Anticancer Drug Screen. Nature Reviews, 6: 813-823, 2006.
+
+Tong, F. P. (2010). Statistical Methods for Dose-Response Assays.
 }
 

@@ -6,7 +6,8 @@
 fitOneExp(dat, drug = NA, cellLine = NA, unit = NA, models = c("LL.3",
   "LL.3u", "sigEmax", "logistic", "linlog"), cols = NA, log.d = TRUE,
   percentile = seq(0.1, 0.9, by = 0.1), alpha = 0.01, fitCtr = FALSE,
-  interpolation = TRUE, plot = FALSE, transparency = 1, ...)
+  standardize = TRUE, interpolation = TRUE, plot = FALSE,
+  transparency = 1, ...)
 }
 \arguments{
 \item{dat}{a 2-column data frame with first column as dose and second column response. Controls are decided by dose=0}
@@ -28,6 +29,8 @@ fitOneExp(dat, drug = NA, cellLine = NA, unit = NA, models = c("LL.3",
 \item{alpha}{outlier significance level}
 
 \item{fitCtr}{whether the model is fitted with control data}
+
+\item{standardize}{whether to standardize (scale) the data based on control points. This should be disabled when no control data is supplied}
 
 \item{interpolation}{whether calculate ICx through interpolation or through root finding. This parameter is passed to computeIC() function. When interpolation=TRUE,
 ICx value will be bounded by observed minimum and maximum dose; otherwise, ICx is calculated through root finding and thus can be outside this boundary (extrapolated).}

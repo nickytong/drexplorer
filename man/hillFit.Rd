@@ -10,7 +10,12 @@ hillFit(d, y)
 
 \item{y}{response relative viability}
 }
+\value{
+it returns a hillFit object consisting a vector of estimations for 'E0', 'Einf', 'EC50', 'HS', 'Emax',
+'MSE' (Mean Squared Error), 'Rsq' (R squared), 'RSE' (Residual Standard Error)
+}
 \description{
+This function implements S3-style OOP. Methods such as predict, plot and lines are available.
 Notice that control data (dose=0) is usually not fitted (supplied) in Hill equation.
 }
 
