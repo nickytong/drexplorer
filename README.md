@@ -26,7 +26,8 @@ The [**devtools** package](http://cran.r-project.org/web/packages/devtools/index
 # load the package
 library(drexplorer)
 	
-# pull out vignette
+# pull out vignette: vignette does not pull out correctly if installed on Linux with non-root (R>3.0)
+# instead, check vignette at: http://htmlpreview.github.com/?https://github.com/nickytong/drexplorer/blob/master/inst/doc/drexplorer.html
 vignette('drexplorer')
 	
 # GUI for dose-response curve fitting
