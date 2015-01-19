@@ -9,8 +9,8 @@ The **drexplorer** R package is developed to facilitate the analysis of dose-res
 * select the best model
 * estimate IC values at different percentiles
 * evaluate drug-drug interactions using interaction index
-* implement NCI 60 method (estimation of GI50, TGI, LD50) ![<img src="https://raw.githubusercontent.com/nickytong/drexplorer/master/inst/doc/new.jpg" align="center" height="20" width="30"/>]
-* implement Hill equation (EC50, Emax, Einf, E0 and Hill slope)
+* implement NCI 60 method (estimation of GI50, TGI, LD50) <img src="https://raw.githubusercontent.com/nickytong/drexplorer/master/inst/doc/new.jpg" align="center" height="30" width="40"/>
+* implement Hill equation (EC50, Emax, Einf, E0 and Hill slope) <img src="https://raw.githubusercontent.com/nickytong/drexplorer/master/inst/doc/new.jpg" align="center" height="30" width="40"/>
 
 ## Installation
 
