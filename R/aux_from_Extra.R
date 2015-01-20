@@ -114,12 +114,14 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 	}
 	#browser()
 	ICmat0 <- t(sapply(fits[indSuccess], computeIC, percent=percentile, log.d=log.d, interpolation=interpolation))
+	#AUCmat_untrnsf <- t(sapply(fits[indSuccess], computeAUC, dmin=dmin, dmax=dmax, islogd=F)) # AUC, AUC0, AUCs in original scale
+	AUCmat_trnsf <- t(sapply(fits[indSuccess], computeAUC, dmin=log10(dmin), dmax=log10(dmax), islogd=T)) # AUC, AUC0, AUCs in log10 sacle
+	#getAUC(fit_sigEmax_alpha_o5, dmin=-0.027, dmax=1.477, islogd=T)
 	IC50 <- sapply(fits[indSuccess], computeIC, percent=0.5, log.d=log.d, interpolation=interpolation)
 	names(IC50) <- models[indSuccess]
 	# make sure to use: models[indSuccess] since RSEs is only for successful model
-	ICmat <- data.frame(Drug=drug, CellLine=cellLine, Model=models[indSuccess], isBestModel=(RSEs==min(RSEs, na.rm=TRUE)), RSE=RSEs, ICmat0)
+	ICmat <- data.frame(Drug=drug, CellLine=cellLine, Model=models[indSuccess], isBestModel=(RSEs==min(RSEs, na.rm=TRUE)), RSE=RSEs, ICmat0, AUCmat_trnsf)
 	datWithOutlierStatus <- data.frame(dat, isOutlier=indicator)
-	#browser()
 	# append min and max dose so that the user can use this to truncate the predicted value
 	#ICx <- ICmat[indBest, ] # this has a mismatch! indBest is absolute index! ICmat removes the failures! Use name for tracking!!!
 	ICx <- ICmat[names(indBest), ]
@@ -127,13 +129,14 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 	ICx$maxLog10Dose <- log10(dmax)
 	ICx$unit <- unit
 	res <- list(fits=fits, 
-		indSuccess=indSuccess,
+		indSuccess=indSuccess, indBest=indBest, 
 		models=models, cols=cols, unit=unit, 
 		ICmat=ICmat, ICx=ICx, IC50=IC50,  
 		datWithOutlierStatus=datWithOutlierStatus,
 		bestModel=bestModel, RSEs=RSEs, drug=drug,
 		cellLine=cellLine
 		)
+	#browser()
 	if(plot){
 		plotOneExp(res, ...)
 	}	

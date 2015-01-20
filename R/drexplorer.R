@@ -160,7 +160,7 @@ model.DoseFinding <- c('emax', 'sigEmax', 'exponential', 'quadratic',
 #'
 #' @export
 recommendedModels <- function(){
-	c('sigEmax', 'LL.4', 'LL.5', 'linear', 'linlog') # LL.3 might be better than linlog
+	c('sigEmax', 'LL.4', 'LL.5', 'linear', 'logistic') # LL.3 might be better than linlog; linlog removed since it is not appropriate, especially predict always -1.37 due to the default off parameter in the original DoseFinding package
 }
 
 #' Show available dose-response models with direct support. 
@@ -406,9 +406,25 @@ drFit <- function(drMat, modelName = "sigEmax", alpha=0.01, fitCtr=FALSE, standa
 ### when predicting, what dose is used, the original or the scaled dose?????
 ###	there is no scaling on dose, only scalin on value, only transformed. So this is a wrong question; but the answer is, the original dose is used!!!
 
-# AUC from fit object that has a prediction method
-getAUC <- function(fit, dmin, dmax, islogd) {
+
+#' Calculate AUC from a fitted object
+#'
+#' AUC is calculated through the integrate() function based on dose-response curve.
+#'
+#' @param fit usually a drFit object. However, any object with a predict method would work.
+#' @param dmin minimum dose. The integral range is [dmin, dmax].
+#' @param dmax maximum dose. The integral range is [dmin, dmax].
+#' @param islogd whether the supplied dose dmin/dmax is in log10 scale. The user should be responsible for the consistency between the actual value
+#' of dmin, dmax and islogd. If log10 transformed dmin/dmax is supplied with islogd=TRUE, the AUC is calculated based on dose-response curve with x-axis being log10(dose); On the
+#' other hand, if dmin, dmax is original scale and islogd=FALSE, the AUC is calculated based on a dose-response curve with x-axis being dose
+#' @return a vector of AUC, AUC0 and AUCs. AUC is the area under dose response curve; AUC0 is the area under the line response=1; AUCS is AUC/AUC0
+#' @export
+computeAUC <- function(fit, dmin, dmax, islogd=TRUE) {
 	# assumption: the predict function is trained on original dose
+	# the rationale: predict response at each dose; apply integration;
+	# AUC can be calculated based on log10 dr curve or original dr curve (in this case, absolute AUC is smaller, scaled AUC is also smaller usually); Notice that this only changes the integration range/scale (x) without affecting response (y)
+	# However, the user should supply dmin/dmax in log10 scale if islogd==TRUE (for log10 AUC) and dmin/dmax in original scale for islogd=FALSE (for untransformed AUC)
+	# according to the Nature paper, AUC is defined on the log10 scale; this is also more intuitive since it matches dr curve which is in log10 scale
 	# islogd: this makes it possible to calculate AUC either on log10dose or original dose. However, the user
 	#      should make sure dmin and dmax is on the same scale (take log10 correspondingly)
 	f_response <- function(Dose, islogd=islogd) {
@@ -418,9 +434,10 @@ getAUC <- function(fit, dmin, dmax, islogd) {
 			dd <- Dose
 		}
 		## currently only implements for drFit
-		if(class(fit)=='drFit'){
-			res <- predict(fit, newData=dd)
-		}
+		#if(class(fit)=='drFit'){
+		#	res <- predict(fit, newData=dd)
+		#}
+		res <- predict(fit, newData=dd)
 		res  
 	}
 	# reference response, e.g. the line response=1; this can be used to scale AUC
@@ -442,8 +459,8 @@ getAUC <- function(fit, dmin, dmax, islogd) {
 	res <- c(AUC=AUC, AUC0=AUC0, AUCs=AUC/AUC0)
 	res
 }
-#getAUC(fit_sigEmax_alpha_o5, dmin=-0.027, dmax=1.477, islogd=T)
-#getAUC(fit, dmin=-8, dmax=-5.5, islogd=T)
+#computeAUC(fit_sigEmax_alpha_o5, dmin=-0.027, dmax=1.477, islogd=T)
+#computeAUC(fit, dmin=-8, dmax=-5.5, islogd=T)
 
 #browser()
 #### @rdname drFit-class
@@ -465,12 +482,14 @@ setMethod('predict', signature(object='drFit'),
 		y <- predict(fitObj, newdata=data.frame(dose=newData), od=TRUE)
 	}
 	if(tag=="DoseFinding"){ # using model fitted from DoseFinding
+		#browser()
+		# linlog always return y=-1.37; problematic for this model!
 		modelName <- attributes(fitObj)$model
 		#f <- get(modelName, pos=which(search() == "package:DoseFinding")) # function name, i.e. sigEmax
-		f <- get(modelName) # function name, i.e. sigEmax
+		func <- get(modelName) # function name, i.e. sigEmax
 		coy <- as.list(fitObj$coefs)
         coy$dose <- newData
-		y <- do.call(f, coy)
+		y <- do.call(func, coy)
 	}
 	y
 })

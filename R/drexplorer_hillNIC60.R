@@ -29,8 +29,14 @@ hillFit <- function(d, y){
 		stop('Please specify equal length in d (dose) and y (response)!\n')
 	}
 	dat <- data.frame(dose=d, response=y)
+	# this might fail due to convergence
+	# need to add boundary: in the order of start
+	# EC50 must between dmin and dmax
+	lb <- c(0, 0, log(min(dat$dose)), 1e-5)
+	ub <- c(2, 1, log(max(dat$dose)), 1e5)
+	# warnOnly=TRUE: always give an result although it might be non-convergent ---> this will always return a result but Rsq can be really poor
 	fit <- try(nls(y ~ Einf + (E0-Einf) /(1+(dose/exp(logEC50))^HS), start=list(E0=1, Einf=0, logEC50=log(median(dat$dose)), HS=1), 
-		algorithm="port", control=list(maxiter=5000, warnOnly=FALSE), data=dat), silent=TRUE)
+		algorithm="port", trace=FALSE, lower=lb, upper=ub, control=list(maxiter=50000, warnOnly=TRUE), data=dat), silent=TRUE)
 	#browser()
 	res <- rep(NA, 8)
 	names(res) <- c('E0', 'Einf', 'EC50', 'HS', 'Emax', 'MSE', 'Rsq', 'RSE')
@@ -51,10 +57,10 @@ hillFit <- function(d, y){
 		res['RSE'] <- rse
 		res['Emax'] <- predict(fit, list(dose=max(d, na.rm=T))) # response at maximum dose using nls predict method
 	}	
-	#browser()
 	attr(res, 'class') <- c('numeric', 'hillFit')
 	attr(res, 'fitDat') <- dat
 	attr(res, 'fit') <- fit
+	#browser()
 	res
 }
 #fit = hillFit(d=mydat$Dose, y=mydat$y)
@@ -139,7 +145,9 @@ lines.hillFit <- function(fit, col=1, lwd=2, show_points=FALSE, pcol='black', pc
 #' Notice that here the response is assumed to be calculated as in: http://dtp.nci.nih.gov/branches/btb/ivclsp.html. The response has range
 #' -1 to 1. 
 #' The original NCI60 method applies linear interpolation to estimate GI50, TGI and LC50. Tong, F. P. improved this by using 4-parameter
-#' logistic model, which is the LL.4 model in drexplorer (from drc package). Here we use LL.4 model to estimate GI50, TGI and LC50.
+#' logistic model, which is the LL.4 model in drexplorer (from drc package). For resistant cell lines, even the LL.4 cannot be fitted since
+#' the curve is essentially flat. Here we fit multiple models throught the model selection framework in drexplorer and use the best model to estimate GI50, TGI and LC50.
+#' This will almost give an estimate for all extreme data without giving NA.
 #'
 #' @param d dose original dose
 #' @param y response percentage of growth inhibition as defined by NCI60 method
@@ -149,12 +157,19 @@ lines.hillFit <- function(fit, col=1, lwd=2, show_points=FALSE, pcol='black', pc
 #' @export
 #' @references Shoemaker, R. H. The NCI60 Human Tumour Cell line Anticancer Drug Screen. Nature Reviews, 6: 813-823, 2006.
 #' @references Tong, F. P. (2010). Statistical Methods for Dose-Response Assays.
-nci60Fit <- function(d, y, interpolation=FALSE, log.d=FALSE){
+nci60Fit <- function(d, y, interpolation=TRUE, log.d=FALSE){
 	#browser()
 	dat <- data.frame(dose=d, response=y)
-	fit <- drFit(drMat=dat, modelName='LL.4', standardize=F)
-	#m1 <- drm(y~d, fct = LL.4())
-	res <- findDoseGivenResponse(fit, response=c(0.5, 0, -0.5), interpolation=interpolation, log.d=log.d)
+	#fit <- try(drFit(drMat=dat, modelName='LL.4', standardize=F), silent=TRUE)
+	fitL <- fitOneExp(dat=dat, standardize=F, drug='', cellLine='', unit='', models=drModels(return=TRUE, verbose=FALSE)[['recommendedModels']], alpha=1, interpolation=TRUE)
+	fitBest <- fitL$fits[[fitL$indBest]]
+	fit <- fitBest
+	if(!inherits(fit, 'try-error')){
+		#m1 <- drm(y~d, fct = LL.4())
+		res <- findDoseGivenResponse(fit, response=c(0.5, 0, -0.5), interpolation=interpolation, log.d=log.d)
+	} else {
+		res <- rep(NA, 3)
+	}
 	base <- ifelse(log.d, 10, 1)
 	names(res) <- c('GI50', 'TGI', 'LC50')
 	attr(res, 'class') <- c('numeric', 'nci60Fit')
@@ -179,8 +194,13 @@ nci60Fit <- function(d, y, interpolation=FALSE, log.d=FALSE){
 predict.nci60Fit <- function(fit, newData=NULL){
 	fitDat <- Getter(fit, 'fitDat')
 	fitDR <- Getter(fit, 'fit') #drFit object
-	if(is.null(newData)) newData <- fitDat$dose 
-	y <- predict(fitDR, newData=newData)
+	if(is.null(newData)) newData <- fitDat$dose
+	#browser()
+	if(!inherits(fitDR, 'try-error')){ 
+		y <- predict(fitDR, newData=newData)
+	} else {
+		y <- rep(NA, length(newData))
+	}
 	#browser()
 	y
 }
@@ -192,6 +212,7 @@ getPlotDat_nci60 <- function(fit){
 	top <- gg$top
 	bot <- gg$bot
 	xGrid <- gg$xGrid
+	#browser()
 	y <- predict(fit, newData=xGrid)
 	## too many points and leads to a large pdf: use a subset of the points
 	ind1 <- which(diff(log10(xGrid))>1e-3) # at log10 dose scale, a step length=1e-3 should be small enough to produce smooth curves
@@ -207,13 +228,15 @@ getPlotDat_nci60 <- function(fit){
 #' @param ... additional parameters, not implemented
 #' @export
 plot.nci60Fit <- function(fit, xlab="Log10(Dose)", ylab="Relative growth", main='Fit of NCI60 method', 
-	xlim=NULL, ylim=c(-1, 1), cex.main=1, cex.axis=1, pcol='black', lcol='black', h=c(-0.5, 0, 0.5), lwd=2, ...){
+	xlim=NULL, ylim=NULL, cex.main=1, cex.axis=1, pcol='black', lcol='black', h=c(-0.5, 0, 0.5), lwd=2, ...){
 	plL <- getPlotDat_nci60(fit)
 	fitDat <- plL$fitDat
 	xGrid <- plL$xGrid
 	indSel <- plL$indSel
 	y <- plL$y
-	if(is.null(ylim)) ylim <- range(pretty(fitDat$response))
+	#if(is.null(ylim)) ylim <- range(pretty(fitDat$response))
+	if(is.null(ylim)) ylim <- c(-1, 1)
+	if(any(fitDat$response>1)) ylim[2] <- max(fitDat$response)
 	if(is.null(xlim)) xlim <- range(pretty(log10(fitDat$dose)))		
 	with(fitDat, plot(log10(dose), response, 
 		xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim, cex.main=cex.main, cex.axis=cex.axis))
@@ -249,8 +272,9 @@ RSS_Hill <- function(par, d, y, isLogEC50=TRUE){
 }
 # param inits a vector of initial values for (Einf, E0, EC50, HS)
 hillFit_optim <- function(d, y, inits=NULL){
-	res <- rep(NA, 5)	# res=c(Einf, E0, EC50, HS)
-	names(res) <- c('Einf', 'E0', 'EC50', 'HS', 'RSS')
+	dat <- data.frame(dose=d, response=y)
+	res <- rep(NA, 8)	# res=c(Einf, E0, EC50, HS)
+	names(res) <- c('E0', 'Einf', 'EC50', 'HS',  'Emax', 'MSE', 'Rsq', 'RSE')
 	initials <- rep(NA, 4)
 	if(is.null(inits)){
 		initials[1] <- min(y)
@@ -267,17 +291,31 @@ hillFit_optim <- function(d, y, inits=NULL){
 	#		upper=constrU, control=list(fnscale=1, pgtol=1e-16, factr=1e3, maxit=3000), method="L-BFGS-B"), silent=TRUE) # L-BFGS-B
 	#optimRes <- try(optim(par=initials, RSS_Hill, y=y, d=d, control=list(fnscale=1, pgtol=1e-16, factr=1e3, maxit=3000), method="CG"), silent=F) 
 	optimRes <- optim(par=initials, RSS_Hill, y=y, d=d, control=list(fnscale=1, pgtol=1e-16, factr=1e3, maxit=3000),lower=constrL,upper=constrU, method="L-BFGS-B")
+	# this RSS might be worse than nls; need fine tuning
+	# returns in the order (Einf, E0, logEC50, HS)
 	#browser()
-	temp <- optimRes$par
-	res[1:4] <- temp
-	res['EC50'] <- exp(temp[3])
-	rss <- optimRes$value
-	#res['RSS'] <- optimRes$value
 	if(class(optimRes)!='try-error'){
-			temp <- optimRes$par
-			#res[1:6] <- c(0, temp[1], 0, temp[2], temp[3], optimRes$value)
-			#res[7] <- getBIC(logLik=optimRes$value, nPar=3, nObs=length(y)) 
+		#browser()
+		temp <- optimRes$par
+		res['Einf'] <- temp[1]
+		res['E0'] <- temp[2]
+		res['EC50'] <- exp(temp[3])
+		res['HS'] <- temp[4]
+		rss <- optimRes$value # residual sum of squares
+		tss <- sum((y-mean(y, na.rm=T))^2, na.rm=T)
+		MSE <- rss/length(y)
+		Rsq <- 1-rss/tss
+		df <- sum(!is.na(y))-4 # four parameters in for Hill model
+		rse <- sqrt(rss/df)
+		res['MSE'] <- MSE
+		res['Rsq'] <- Rsq
+		res['RSE'] <- rse
+		#res['Emax'] <- predict(fit, list(dose=max(d, na.rm=T))) # response at maximum dose using nls predict method
+		res['Emax'] <- fHill(Dose=max(d, na.rm=T), Einf=res['Einf'], E0=res['E0'], logEC50=log(res['EC50']), HS=res['HS'])
 	}	
+	attr(res, 'class') <- c('numeric', 'hillFit')
+	attr(res, 'fitDat') <- dat
+	attr(res, 'fit') <- optimRes
 	res	
 }	
 #hillFit_optim(d=mydat$Dose, y=mydat$y, inits=NULL)		

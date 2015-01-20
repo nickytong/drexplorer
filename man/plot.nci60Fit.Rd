@@ -4,9 +4,9 @@
 \title{plot method for nci60Fit class}
 \usage{
 \method{plot}{nci60Fit}(fit, xlab = "Log10(Dose)", ylab = "Relative growth",
-  main = "Fit of NCI60 method", xlim = NULL, ylim = c(-1, 1),
-  cex.main = 1, cex.axis = 1, pcol = "black", lcol = "black",
-  h = c(-0.5, 0, 0.5), lwd = 2, ...)
+  main = "Fit of NCI60 method", xlim = NULL, ylim = NULL, cex.main = 1,
+  cex.axis = 1, pcol = "black", lcol = "black", h = c(-0.5, 0, 0.5),
+  lwd = 2, ...)
 }
 \arguments{
 \item{h}{horizontal line to add indicating e.g. GI (h=0.5), TGI (h=0), LD50 (h=-0.5)}
