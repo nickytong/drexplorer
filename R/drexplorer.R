@@ -527,6 +527,12 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=0, 
 	# modified on 02/22/2014: upper too large makes f(d) Nan in sigEmax. sigEmax is between e0+eMax ~ e0
 	if(missing(upper)) upper <- 1e60 # assume maximum dose will not exceed 1e10
 	myIC <- percent #
+	# what to return for NA
+	getNAres <- function(percent){
+		res <- NA
+		names(res) <- paste('response_', percent, sep='')
+		res
+	}
 	if(tag=="drc"){
 		objFct <- drFit@fit$fct
 		pm <- drFit@fit$parmMat # par mat
@@ -544,14 +550,19 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=0, 
 		#ymax <- f.drc(d=lower, parm=t(pm), IC=0)
 		ymin <- fl.drc(ld=log(upper), parm=t(pm), IC=0)
 		ymax <- fl.drc(ld=log(lower), parm=t(pm), IC=0)
+		# ymin can be NaN when the dr function is not well behaved
+		# we just return NA
+		if(is.nan(ymin) | is.nan(ymax)) {
+			return(getNAres(percent))
+		}
 		# in case the curse is increasing, ymax < ymin
 		# we swap them
+		#browser()
 		if(ymax < ymin) {
 			tt <- ymax
 			ymax <- ymin
 			ymin <- tt
 		}
-		#browser()
 		if(myIC>ymax) {
 			res <- dmin # required response > theoretical maximum response, throw NA
 		} else if(myIC<ymin){
@@ -573,7 +584,11 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=0, 
 		}
 		ymax <- fl.DoseFinding(ld=log(lower), coef=coy, IC=0)
 		ymin <- fl.DoseFinding(ld=log(upper), coef=coy, IC=0)
-		#browser()
+		# ymin can be NaN when the dr function is not well behaved
+		# we just return NA
+		if(is.nan(ymin) | is.nan(ymax)) {
+			return(getNAres(percent))
+		}
 		# in case the curse is increasing, ymax < ymin
 		# we swap them
 		if(ymax < ymin) {
