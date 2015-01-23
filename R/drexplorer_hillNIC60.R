@@ -108,7 +108,7 @@ plot.hillFit <- function(fit, xlab="Log10(Dose)", ylab="Relative viability", mai
 	if(is.null(ylim)) ylim <- range(pretty(fitDat$response))
 	if(is.null(xlim)) xlim <- range(pretty(log10(fitDat$dose)))		
 	with(fitDat, plot(log10(dose), response, 
-		xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim, cex.main=cex.main, cex.axis=cex.axis))
+		xlab=xlab, ylab=ylab, main=main, xlim=xlim, ylim=ylim, cex.main=cex.main, cex.axis=cex.axis))
 	#browser()
 	lines(log10(xGrid)[indSel], y[indSel], col=lcol, lwd=lwd)
 	#browser()
@@ -239,7 +239,7 @@ plot.nci60Fit <- function(fit, xlab="Log10(Dose)", ylab="Relative growth", main=
 	if(any(fitDat$response>1)) ylim[2] <- max(fitDat$response)
 	if(is.null(xlim)) xlim <- range(pretty(log10(fitDat$dose)))		
 	with(fitDat, plot(log10(dose), response, 
-		xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim, cex.main=cex.main, cex.axis=cex.axis))
+		xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim, main=main, cex.main=cex.main, cex.axis=cex.axis))
 	#browser()
 	#xlim1 <- xlim[1]
 	#segments(xlim1, 0.5, fit['GI50'], 0.5, lty=2, col='gray')
