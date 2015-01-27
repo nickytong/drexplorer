@@ -47,8 +47,7 @@ vignette('drexplorer')
 ## Cite Us
 The **drexplorer** package has been published in Bioinformatics which can be cited as:
 
-Tong, Pan, Coombes, Kevin R., Johnson, Faye M., Byers, Lauren A., Diao, Lixia, Liu, Diane D., . . . Wang, Jing. (2015). drexplorer: A tool to explore dose–response relationships and drug–drug interactions. Bioinformatics. 
-
+Tong, Pan, Kevin R. Coombes, Faye M. Johnson, Lauren A. Byers, Lixia Diao, Diane D. Liu, J. Jack Lee, John V. Heymach, and Jing Wang. "drexplorer: A tool to explore dose–response relationships and drug–drug interactions." Bioinformatics (2015): btv028.
 
 ## Build Status
 [Travis
