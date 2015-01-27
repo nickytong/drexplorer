@@ -221,7 +221,7 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 		ind2plot <- which(models==bestModel)
 	}
 	#browser()
-	if(length(ind2plot)>=1)  {# when there are multiple curves to plot, type must be plot and additional lines 
+	if(length(ind2plot)>1)  {# when there are multiple curves to plot, type must be plot and additional lines 
 		type='plot'
 	}
 	#browser()
@@ -235,8 +235,10 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 	} else {
 		lines(fits[[ind2plot[1]]], col=col_use[ind2plot[1]], lwd=lwd)
 	}
+	#browser()
 	# draw all remaining models
 	if(length(ind2plot)>1) {
+			#browser()
 			for(i in ind2plot[-1]) {
 				lines(fits[[i]], col=col_use[i], lwd=lwd)
 			}

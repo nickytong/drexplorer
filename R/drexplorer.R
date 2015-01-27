@@ -522,10 +522,10 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=0, 
 	res <- NA
 	dose <- drFit@originalDat[, 1]
 	#if(missing(lower)) lower <- min(c(1e-30, min(dose)))
-	if(missing(lower)) lower <- 1e-60 # cannot allow log(lower)=log(0) as uniroot lower bound
+	if(missing(lower)) lower <- 1e-10 # cannot allow log(lower)=log(0) as uniroot lower bound
 	#if(missing(upper)) upper <- max(dose)*1e60
-	# modified on 02/22/2014: upper too large makes f(d) Nan in sigEmax. sigEmax is between e0+eMax ~ e0
-	if(missing(upper)) upper <- 1e60 # assume maximum dose will not exceed 1e10
+	# modified on 02/22/2014: upper too large (1e60) makes f(d) Nan in sigEmax, thus use 1e10. sigEmax is between e0+eMax ~ e0
+	if(missing(upper)) upper <- 1e10 # assume maximum dose will not exceed 1e10
 	myIC <- percent #
 	# what to return for NA
 	getNAres <- function(percent){
@@ -552,7 +552,9 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=0, 
 		ymax <- fl.drc(ld=log(lower), parm=t(pm), IC=0)
 		# ymin can be NaN when the dr function is not well behaved
 		# we just return NA
+		#browser()
 		if(is.nan(ymin) | is.nan(ymax)) {
+			#browser()
 			return(getNAres(percent))
 		}
 		# in case the curse is increasing, ymax < ymin
@@ -585,8 +587,10 @@ RootFindingIC <- function(drFit, percent=0.5, log.d=TRUE, lower, upper, dmin=0, 
 		ymax <- fl.DoseFinding(ld=log(lower), coef=coy, IC=0)
 		ymin <- fl.DoseFinding(ld=log(upper), coef=coy, IC=0)
 		# ymin can be NaN when the dr function is not well behaved
+		## this is due to a bug in sigEmax function: e0 + eMax * dose^h/(ed50^h + dose^h); when dose=1e60, d^h=Inf; Inf/Inf=NaN; we can manually correct for this, but it is easier to set smaller upper, i.e. 1e10
 		# we just return NA
 		if(is.nan(ymin) | is.nan(ymax)) {
+			#browser()
 			return(getNAres(percent))
 		}
 		# in case the curse is increasing, ymax < ymin
