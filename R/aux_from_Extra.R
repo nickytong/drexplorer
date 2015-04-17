@@ -78,9 +78,22 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 	dmin <- min(dose[indtrt], na.rm=TRUE)
 	dmax <- max(dose[indtrt], na.rm=TRUE)
 	indicator <- drOutlier(drMat=drMat, alpha=alpha) 
+	# this does not work: set list element to NULL actually removes it
 	#fits <- vector('list')
-	fits <- foreach(i=1:length(models)) %do% {
-			tmfit <- try(drFit(drMat=drMat, modelName = models[i], alpha=alpha, fitCtr=fitCtr, standardize=standardize), silent=TRUE)
+	#for(i in 1:length(models)){
+	#		tmfit <- try(drFit(drMat=drMat, modelName = models[i], alpha=alpha, fitCtr=fitCtr, standardize=standardize), silent=TRUE)
+	#		## some model fails to model the data and numerically not computable by the original packages
+	#		if(class(tmfit)!='try-error') {
+	#			fits[[i]] <- tmfit
+	#		} else {
+	#			#fits[[i]] <- NULL: this makes length of fits != models
+	#			fits[[i]] <- list(NULL)
+	#			warning(sprintf('Drug: %s CellLine: %s Model: %s failed!\n', drug, cellLine, models[i]))
+	#		}
+	#}
+	# no foreach 
+	fits <- lapply(models, function(x){
+		tmfit <- try(drFit(drMat=drMat, modelName = x, alpha=alpha, fitCtr=fitCtr, standardize=standardize), silent=TRUE)
 			## some model fails to model the data and numerically not computable by the original packages
 			if(class(tmfit)!='try-error') {
 				res <- tmfit
@@ -90,7 +103,19 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 				warning(sprintf('Drug: %s CellLine: %s Model: %s failed!\n', drug, cellLine, models[i]))
 			}
 			res
-	}
+	})
+	#fits <- foreach(i=1:length(models)) %do% {
+	#		tmfit <- try(drFit(drMat=drMat, modelName = models[i], alpha=alpha, fitCtr=fitCtr, standardize=standardize), silent=TRUE)
+	#		## some model fails to model the data and numerically not computable by the original packages
+	#		if(class(tmfit)!='try-error') {
+	#			res <- tmfit
+	#		} else {
+	#			#fits[[i]] <- NULL: this makes length of fits != models
+	#			res <- NULL
+	#			warning(sprintf('Drug: %s CellLine: %s Model: %s failed!\n', drug, cellLine, models[i]))
+	#		}
+	#		res
+	#}
 	#browser()
 	names(fits) <- models
 	indSuccess <- which(!sapply(fits, is.null))
