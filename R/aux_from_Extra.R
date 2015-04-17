@@ -192,8 +192,9 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 	#attach(fitRes) # this is a place for bug!
 	with(fitRes, {
 	# draw dots
-	## when the user does not specify which index of the models to plot, plot all available ones; of course, the use can specify the one for the best model
+	## when the user does not specify which index of the models to plot, plot all available ones; of course, the user can specify the one for the best model
 	RSEs <- sapply(fits[indSuccess], function(x) x@info$RSE)
+	RSEs_aug <- sapply(fits, function(x) ifelse(is.null(x), NA, x@info$RSE)) # length matched with fits
 	indBest <- indSuccess[which.min(RSEs)] # find best model by RSE
 	bestModel <- models[indBest]
 	if(is.na(xlab)) xlab <- 'Log10(Dose)'
@@ -254,11 +255,11 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 	}
 	if(show=='RSE'){
 		if(is.na(cexLegend)) cexLegend <- 1
-		models_more <- str_c(models, signif(RSEs, 4), sep=', RSE=')
+		models_more <- str_c(models, signif(RSEs_aug, 4), sep=', RSE=')
 	}
 	if(show=='both'){
 		if(is.na(cexLegend)) cexLegend <- 0.8
-		models_more <- str_c(models, ', IC50=', signif(IC50, 3), ', RSE=', signif(RSEs, 4), sep='')
+		models_more <- str_c(models, ', IC50=', signif(IC50, 3), ', RSE=', signif(RSEs_aug, 4), sep='')
 	}
 	if(any(sapply(fits, is.null))) models_more[sapply(fits, is.null)] <- paste(models[sapply(fits, is.null)], ': failed', sep='')
 	models_show <- models_more[ind2plot]
