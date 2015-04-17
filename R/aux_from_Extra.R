@@ -189,7 +189,8 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 		# the only case to specify incompatible cols is when only plot the best model: populate all cols as the only col specified to get it done
 		col_use <- rep(cols, length(fitRes$models))
 	}
-	attach(fitRes)
+	#attach(fitRes) # this is a place for bug!
+	with(fitRes, {
 	# draw dots
 	## when the user does not specify which index of the models to plot, plot all available ones; of course, the use can specify the one for the best model
 	RSEs <- sapply(fits[indSuccess], function(x) x@info$RSE)
@@ -270,7 +271,8 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 		}	
 	}
 	#browser()
-	detach("fitRes")
+	#detach("fitRes")
+	})
 }
 
 getMaxResponse <- function(fits){

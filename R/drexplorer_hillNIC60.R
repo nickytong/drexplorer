@@ -81,6 +81,7 @@ predict.hillFit <- function(fit, newData=NULL){
 }
 
 getPlotDat_hill <- function(fit){
+	#browser()
 	fitDat <- Getter(fit, 'fitDat')
 	gg <- format_grid(fitDat$dose)
 	top <- gg$top
@@ -88,9 +89,16 @@ getPlotDat_hill <- function(fit){
 	xGrid <- gg$xGrid
 	y <- predict(fit, newData=xGrid)
 	## too many points and leads to a large pdf: use a subset of the points
-	ind1 <- which(diff(log10(xGrid))>1e-3) # at log10 dose scale, a step length=1e-3 should be small enough to produce smooth curves
-	ind2 <- floor(seq(max(ind1)+1, length(xGrid), length.out=1000))
-	indSel <- c(ind1, ind2)
+	#ind1 <- which(diff(log10(xGrid))>1e-3) # at log10 dose scale, a step length=1e-3 should be small enough to produce smooth curves
+	#ind2 <- floor(seq(max(ind1)+1, length(xGrid), length.out=1000))
+	#indSel <- c(ind1, ind2)
+	if(length(xGrid)>10000){
+		ind1 <- which(diff(log10(xGrid))>1e-3) # at log10 dose scale, a step length=1e-3 should be small enough to produce smooth curves
+		ind2 <- floor(seq(max(ind1)+1, length(xGrid), length.out=1000))
+		indSel <- c(ind1, ind2)
+	} else {
+		indSel <- 1:length(xGrid)
+	}
 	list(fitDat=fitDat, y=y, indSel=indSel, xGrid=xGrid)
 }
 #' plot method for hillFit class
@@ -100,6 +108,7 @@ getPlotDat_hill <- function(fit){
 #' @export
 plot.hillFit <- function(fit, xlab="Log10(Dose)", ylab="Relative viability", main='Fit of Hill equation', 
 	xlim=NULL, ylim=NULL, cex.main=1, cex.axis=1, pcol='black', lcol='black', lwd=2, ...){
+	#browser()
 	plL <- getPlotDat_hill(fit)
 	fitDat <- plL$fitDat
 	xGrid <- plL$xGrid
@@ -109,7 +118,6 @@ plot.hillFit <- function(fit, xlab="Log10(Dose)", ylab="Relative viability", mai
 	if(is.null(xlim)) xlim <- range(pretty(log10(fitDat$dose)))		
 	with(fitDat, plot(log10(dose), response, 
 		xlab=xlab, ylab=ylab, main=main, xlim=xlim, ylim=ylim, cex.main=cex.main, cex.axis=cex.axis))
-	#browser()
 	lines(log10(xGrid)[indSel], y[indSel], col=lcol, lwd=lwd)
 	#browser()
 } 
@@ -215,9 +223,13 @@ getPlotDat_nci60 <- function(fit){
 	#browser()
 	y <- predict(fit, newData=xGrid)
 	## too many points and leads to a large pdf: use a subset of the points
-	ind1 <- which(diff(log10(xGrid))>1e-3) # at log10 dose scale, a step length=1e-3 should be small enough to produce smooth curves
-	ind2 <- floor(seq(max(ind1)+1, length(xGrid), length.out=1000))
-	indSel <- c(ind1, ind2)
+	if(length(xGrid)>10000){
+		ind1 <- which(diff(log10(xGrid))>1e-3) # at log10 dose scale, a step length=1e-3 should be small enough to produce smooth curves
+		ind2 <- floor(seq(max(ind1)+1, length(xGrid), length.out=1000))
+		indSel <- c(ind1, ind2)
+	} else {
+		indSel <- 1:length(xGrid)
+	}
 	list(fitDat=fitDat, y=y, indSel=indSel, xGrid=xGrid)
 }
 
@@ -229,6 +241,7 @@ getPlotDat_nci60 <- function(fit){
 #' @export
 plot.nci60Fit <- function(fit, xlab="Log10(Dose)", ylab="Relative growth", main='Fit of NCI60 method', 
 	xlim=NULL, ylim=NULL, cex.main=1, cex.axis=1, pcol='black', lcol='black', h=c(-0.5, 0, 0.5), lwd=2, ...){
+	#browser()
 	plL <- getPlotDat_nci60(fit)
 	fitDat <- plL$fitDat
 	xGrid <- plL$xGrid

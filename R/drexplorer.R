@@ -311,10 +311,7 @@ noNA <- function (dat)
 #' @param standardize whether to standardize (scale) the data based on control points. This should be disabled when no control data is supplied
 #' @return a list
 prepDRdat <- function(drMat, alpha=0.01, fitCtr=FALSE, standardize=TRUE){
-	# if drMat itself is scaled data, then outlier remover is on scaled data
-	indicator <- drOutlier(drMat=drMat, alpha=alpha) # for outlier removal
-	indicator1 <- suppressWarnings(drOutlier(drMat=drMat, alpha=0.05)) # for plot purpose indicating different levels of outlier status
-	indicator2 <- suppressWarnings(drOutlier(drMat=drMat, alpha=0.01)) # for plot purpose indicating different levels of outlier status
+	datInput <- drMat # input dat
 	drMat <- noNA(drMat)
 	hasCtrl <- any(drMat[, 1]==0) # logical indicating if there is control data by testing if any dose is 0
 	dose <- drMat[, 1]
@@ -332,6 +329,14 @@ prepDRdat <- function(drMat, alpha=0.01, fitCtr=FALSE, standardize=TRUE){
 		# no standardization
 		datAll <- data.frame(dose=dose, response=response)
 	}
+	# if drMat itself is scaled data, then outlier remover is on scaled data
+	#indicator <- drOutlier(drMat=drMat, alpha=alpha) # for outlier removal
+	#indicator1 <- suppressWarnings(drOutlier(drMat=drMat, alpha=0.05)) # for plot purpose indicating different levels of outlier status
+	#indicator2 <- suppressWarnings(drOutlier(drMat=drMat, alpha=0.01)) # for plot purpose indicating different levels of outlier status
+	#### use scaled data if asked or the input data: 20150406
+	indicator <- drOutlier(drMat=datAll, alpha=alpha) # for outlier removal
+	indicator1 <- suppressWarnings(drOutlier(drMat=datAll, alpha=0.05)) # for plot purpose indicating different levels of outlier status
+	indicator2 <- suppressWarnings(drOutlier(drMat=datAll, alpha=0.01)) # for plot purpose indicating different levels of outlier status
 	# dat is the data used for fitting models
 	if(fitCtr) { 
 		dat <- datAll[!indicator, ] # just remove outlier and include control
@@ -343,8 +348,36 @@ prepDRdat <- function(drMat, alpha=0.01, fitCtr=FALSE, standardize=TRUE){
 	isTrt <- indTrt # this include outliers; 
 	#browser()
 	list(dat=dat, datAll=datAll, isCtrl=isCtrl, isTrt=isTrt, isOutlier=indicator, indicator1=indicator1, indicator2=indicator2, 
-		standardize=standardize, fitCtr=fitCtr, alpha=alpha, hasCtrl=hasCtrl)
+		standardize=standardize, fitCtr=fitCtr, alpha=alpha, hasCtrl=hasCtrl, datInput=datInput)
 }
+
+#' from prepared data to experiment setup information
+#'
+#' this includes: N dose (non-control), N technical rep (number of obs. at each dose, may be a string), 
+#' experimental variation including medianSD, minSD, maxSD, meanSD computed from SD across different tech replicates
+#' @param resPrepDR result returned by prepDRdat
+#' @return a data frame
+prepDRdat2expInfo <- function(resPrepDR){
+	datAll <- resPrepDR$datAll
+	isTrt <- resPrepDR$isTrt
+	# just focus on non-control data
+	datTrt <- datAll[isTrt, ]
+	N_dose <- length(unique(datTrt$dose))
+	N_techRep <- str_c(unique(table(datTrt$dose)), sep=', ') # usually one number; can be comma-separated
+	SDres <- ddply(datTrt, .(dose), function(x) SD=sd(as.vector(data.matrix(x[, -1])), na.rm=T))
+	fixTryErr <- function(x) {
+    res <- ifelse(inherits(x, 'try-error'), NA, x)
+    res
+ 	}
+	minSD <- fixTryErr(try(min(SDres[, 2], na.rm=T), silent=T))
+	maxSD <- fixTryErr(try(max(SDres[, 2], na.rm=T), silent=T))
+	meanSD <- fixTryErr(try(mean(SDres[, 2], na.rm=T), silent=T))
+	medianSD <- fixTryErr(try(median(SDres[, 2], na.rm=T), silent=T))
+    rr <- data.frame(N_dose=N_dose, N_techRep=N_techRep, meanSD_techRep=meanSD, medianSD_techRep=medianSD, minSD_techRep=minSD, maxSD_techRep=maxSD)
+    rr
+}
+
+
 ## added residual standard error (RSE) on 2014/01/06 so that model selection by RSE can be implemented.
 ## notice: ******** drFit internally scales the response and fit the models on the scaled values. It is prohibited to scale the data before feeding to drexplorer!!!! *********
 #' Fit a dose-response model
@@ -740,19 +773,31 @@ icByInterpolation <- function(perc, xv, yv, ubound=max(xv), lbound=min(xv)){
 #computeIC(fit_sigEmax_alpha_o5, percent=0.6, log.d=T, interpolation=TRUE)
 
 ## a function that computes grid (xGrid) and xlim (top, bot) for plotting
-# resolution: mid_d/resolution is the step length
+# resolution: min_d/resolution is the step length
 # stepLen: this overrides the default way of computing step length
+# on 20150406, use equal space between observed dose in log10 scale for grid; output 5000 grids; thus resolution and stepLen are not needed; 
 format_grid <- function(dose1, resolution=50, stepLen=NA){
 	top <- 10^ceiling(log10(max(dose1))) ######### modified: sometimes only 6 doses are observed. This modification guarantees all 7 doses are present
 	bot <- 10^floor(log10(min(dose1)))
     dif <- diff(sort(dose1, decreasing=FALSE)); 
 	min_d <- min(dif[dif!=0]) # add sort so that dif will always be positive
-	if(is.na(stepLen)){
-		stepLen <- min_d/resolution
-	}
-	xGrid <- seq(bot, top, by=stepLen) ## set the grid for x-axis, at log10 scale
+	#browser()
+	###
+	# this is in raw dose scale
+	###
+	#if(is.na(stepLen)){
+	#	stepLen <- min_d/resolution
+	#}
+	#xGrid <- seq(bot, top, by=stepLen) ## set the grid for x-axis, at log10 scale
 	# modified on 02/22/2014: the grid might be too coarse that misses some observed dose; we need to force the observed dose in
-	xGrid <- sort(unique(c(xGrid, dose1)), decreasing=FALSE)
+	#xGrid <- sort(unique(c(xGrid, dose1)), decreasing=FALSE)
+	###
+	# log10 scale grid: modified on 20150406
+	###
+	#if(is.na(stepLen)){
+	#	stepLen <- abs(log10(min_d)/resolution)
+	#}
+	xGrid <- 10^approx(log10(sort(unique(dose1))), n=5000)$y # 5000 points equal space between each dose
 	list(top=top, bot=bot, xGrid=xGrid, stepLen=stepLen)
 }
 
@@ -805,6 +850,7 @@ setMethod('plot', signature(x='drFit'),
 	# (1) outlier at both levels: for graphical purpose. the actual outlier identification is embedded in model fitting. 
 	#indicator1 <- drOutlier(drMat=drMat, alpha=0.05)  
 	#indicator2 <- drOutlier(drMat=drMat, alpha=0.01)
+	#browser()
 	pCols <- rep(cols[1], nrow(datAll)) # cols[1] for regular points
 	pCols[indicator1] <- cols[2] # cols[2] for outliers at 5% significance level
 	pCols[indicator2] <- cols[3] # cols[3] for outliers at 1% significance level
@@ -844,9 +890,14 @@ setMethod('plot', signature(x='drFit'),
 	#browser()
 	# modified on 02/23/2014: use a subset of points so that the pdf figure will not be too large
 	## too many points and leads to a large pdf: use a subset of the points
-	ind1 <- which(diff(log10(xGrid))>1e-3) # at log10 dose scale, a step length=1e-3 should be small enough to produce smooth curves
-	ind2 <- floor(seq(max(ind1)+1, length(xGrid), length.out=1000))
-	indSel <- c(ind1, ind2)
+	## modified on 20150406: grid out has 5000 points, this should be reasonable; no subsetting is needed if grid length less than 10000
+	if(length(xGrid)>10000){
+		ind1 <- which(diff(log10(xGrid))>1e-3) # at log10 dose scale, a step length=1e-3 should be small enough to produce smooth curves
+		ind2 <- floor(seq(max(ind1)+1, length(xGrid), length.out=1000))
+		indSel <- c(ind1, ind2)
+	} else {
+		indSel <- 1:length(xGrid)
+	}
 	#lines(log10(xGrid), y, col=col, lwd=lwd)
 	#browser()
 	lines(log10(xGrid)[indSel], y[indSel], col=col, lwd=lwd)
@@ -885,9 +936,14 @@ setMethod('lines', signature(x='drFit'),
 	xGrid <- gg$xGrid
 	y <- predict(x, newData=xGrid)
 	# modified on 02/23/2014: use a subset of points so that the pdf figure will not be too large
-	ind1 <- which(diff(log10(xGrid))>1e-3)
-	ind2 <- floor(seq(max(ind1)+1, length(xGrid), length.out=1000))
-	indSel <- c(ind1, ind2)
+	## modified on 20150406: grid out has 5000 points, this should be reasonable; no subsetting is needed if grid length less than 10000
+	if(length(xGrid)>10000){
+		ind1 <- which(diff(log10(xGrid))>1e-3) # at log10 dose scale, a step length=1e-3 should be small enough to produce smooth curves
+		ind2 <- floor(seq(max(ind1)+1, length(xGrid), length.out=1000))
+		indSel <- c(ind1, ind2)
+	} else {
+		indSel <- 1:length(xGrid)
+	}
 	lines(log10(xGrid)[indSel], y[indSel], col=col, lwd=lwd, ...)
 	# sometimes the added lines can be accompanied with points to show original data
 	if(show_points){
