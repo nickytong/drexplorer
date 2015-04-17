@@ -78,17 +78,18 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 	dmin <- min(dose[indtrt], na.rm=TRUE)
 	dmax <- max(dose[indtrt], na.rm=TRUE)
 	indicator <- drOutlier(drMat=drMat, alpha=alpha) 
-	fits <- vector('list')
-	for(i in 1:length(models)){
+	#fits <- vector('list')
+	fits <- foreach(i=1:length(models)) %do% {
 			tmfit <- try(drFit(drMat=drMat, modelName = models[i], alpha=alpha, fitCtr=fitCtr, standardize=standardize), silent=TRUE)
 			## some model fails to model the data and numerically not computable by the original packages
 			if(class(tmfit)!='try-error') {
-				fits[[i]] <- tmfit
+				res <- tmfit
 			} else {
 				#fits[[i]] <- NULL: this makes length of fits != models
-				fits[[i]] <- NULL
+				res <- NULL
 				warning(sprintf('Drug: %s CellLine: %s Model: %s failed!\n', drug, cellLine, models[i]))
 			}
+			res
 	}
 	#browser()
 	names(fits) <- models

@@ -25,7 +25,8 @@ Imports:
     RColorBrewer,
     scales,
     drc,
-    DoseFinding
+    DoseFinding,
+    foreach
 Suggests:
     knitr,
     rmarkdown
