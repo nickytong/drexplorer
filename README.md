@@ -38,8 +38,8 @@ drexplorerGUI_1()
 drexplorerGUI_2()
 ```    
 
-## User Mannual
-A [mannual](http://htmlpreview.github.com/?https://github.com/nickytong/drexplorer/blob/master/inst/doc/drexplorer.html) is available. This is the same document as shown by typing the following command in R console.
+## User Manual
+A [manual](http://htmlpreview.github.com/?https://github.com/nickytong/drexplorer/blob/master/inst/doc/drexplorer.html) is available. This is the same document as shown by typing the following command in R console.
 
 ```r
 vignette('drexplorer')
