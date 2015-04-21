@@ -100,7 +100,9 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 			} else {
 				#fits[[i]] <- NULL: this makes length of fits != models
 				res <- NULL
-				warning(sprintf('Drug: %s CellLine: %s Model: %s failed!\n', drug, cellLine, models[i]))
+				# bug here
+				#warning(sprintf('Drug: %s CellLine: %s Model: %s failed!\n', drug, cellLine, models[i]))
+				warning(sprintf('Drug: %s CellLine: %s Model: %s failed!\n', drug, cellLine, x))
 			}
 			res
 	})
@@ -136,7 +138,15 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 			indBest <- indSuccess[which.min(RSEs)] # find best model by RSE
 			bestModel <- models[indBest]
 	} else {
-		stop(sprintf('None of the specified models can be fitted in cell line: %s drug: %s\n\tSpecified models are: %s', cellLine, drug, str_c(models)))
+		stop(sprintf('None of the specified models can be fitted in cell line: %s drug: %s\n\tSpecified models are: %s', cellLine, drug, str_c(models, collapse=', ')))
+		#message(sprintf('None of the specified models can be fitted in cell line: %s drug: %s\n\tSpecified models are: %s', cellLine, drug, str_c(models)))
+		#res <- NA
+		#attr(res, 'CellLine') <- cellLine
+		#attr(res, 'drug') <- drug
+		#attr(res, 'models') <- models
+		#attr(res, 'call') <- as.list(match.call())
+		#browser()
+		#return(res)
 	}
 	#browser()
 	ICmat0 <- t(sapply(fits[indSuccess], computeIC, percent=percentile, log.d=log.d, interpolation=interpolation))
