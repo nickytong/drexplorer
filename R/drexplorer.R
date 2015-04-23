@@ -91,8 +91,10 @@ NewmanTest <- function(ref, obs, alpha=0.01, recursive=FALSE){
 	tab <- onePercentTab # default lookup table, table IV in the paper
 	if(alpha==0.05) tab <- fivePercentTab
 	cutoff <- tab[as.character(f), as.character(n)]
-#browser()
-	if(q>cutoff) {
+	#browser()
+	# bug fix on 04/22/2015:
+	# s can be 0: all ref the same; all obs the same (w=0, ok) due to saturation; in this case, no outlier in the data as all data are identical
+	if(s!=0 & q>cutoff) {
 		temp <- obs-median(obs, na.rm=TRUE)
 		if(abs(min(temp, na.rm=TRUE))>abs(max(temp, na.rm=TRUE)))
 			ind <- which.min(obs) # minimum is the extreme and excluded. note that NA does not affect the index due to the design of which.min()
