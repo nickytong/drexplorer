@@ -365,7 +365,8 @@ prepDRdat2expInfo <- function(resPrepDR){
 	# just focus on non-control data
 	datTrt <- datAll[isTrt, ]
 	N_dose <- length(unique(datTrt$dose))
-	N_techRep <- str_c(unique(table(datTrt$dose)), sep=', ') # usually one number; can be comma-separated
+	#browser()
+	N_techRep <- str_c(unique(table(datTrt$dose)), collapse=', ') # usually one number; can be comma-separated
 	SDres <- ddply(datTrt, .(dose), function(x) SD=sd(as.vector(data.matrix(x[, -1])), na.rm=T))
 	fixTryErr <- function(x) {
     res <- ifelse(inherits(x, 'try-error'), NA, x)
