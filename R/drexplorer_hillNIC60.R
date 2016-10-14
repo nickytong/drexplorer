@@ -72,7 +72,7 @@ hillFit <- function(d, y){
 #' @return predicted response at specified dose
 #' @export
 predict.hillFit <- function(fit, newData=NULL){
-	fitDat <- Getter(fit, 'fitDat')
+	fitDat <- toget(fit, 'fitDat')
 	if(is.null(newData)) newData <- fitDat$dose 
 	dose <- newData
 	y <- fHill(Dose=dose, Einf=fit['Einf'], E0=fit['E0'], logEC50=log(fit['EC50']), HS=fit['HS'])
@@ -82,7 +82,7 @@ predict.hillFit <- function(fit, newData=NULL){
 
 getPlotDat_hill <- function(fit){
 	#browser()
-	fitDat <- Getter(fit, 'fitDat')
+	fitDat <- toget(fit, 'fitDat')
 	gg <- format_grid(fitDat$dose)
 	top <- gg$top
 	bot <- gg$bot
@@ -200,8 +200,8 @@ nci60Fit <- function(d, y, interpolation=TRUE, log.d=FALSE){
 #' @return predicted response at specified dose
 #' @export
 predict.nci60Fit <- function(fit, newData=NULL){
-	fitDat <- Getter(fit, 'fitDat')
-	fitDR <- Getter(fit, 'fit') #drFit object
+	fitDat <- toget(fit, 'fitDat')
+	fitDR <- toget(fit, 'fit') #drFit object
 	if(is.null(newData)) newData <- fitDat$dose
 	#browser()
 	if(!inherits(fitDR, 'try-error')){ 
@@ -215,7 +215,7 @@ predict.nci60Fit <- function(fit, newData=NULL){
 # predict(fit2)
 
 getPlotDat_nci60 <- function(fit){
-	fitDat <- Getter(fit, 'fitDat')
+	fitDat <- toget(fit, 'fitDat')
 	gg <- format_grid(fitDat$dose)
 	top <- gg$top
 	bot <- gg$bot

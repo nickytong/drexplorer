@@ -148,7 +148,11 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 		#browser()
 		#return(res)
 	}
-	#browser()
+	#zz = computeICvariance(fits[indSuccess][[2]], percent=percentile)
+	#zz = computeIC(fits[indSuccess][[2]], percent=percentile)
+	# added variance estimation of IC values on 2015/07/21
+	nPar <- sapply(fits[indSuccess], function(x) x@nPar)
+	ICmat0_variance <- t(sapply(fits[indSuccess], computeICvariance, percent=percentile))
 	ICmat0 <- t(sapply(fits[indSuccess], computeIC, percent=percentile, log.d=log.d, interpolation=interpolation))
 	#AUCmat_untrnsf <- t(sapply(fits[indSuccess], computeAUC, dmin=dmin, dmax=dmax, islogd=F)) # AUC, AUC0, AUCs in original scale
 	AUCmat_trnsf <- t(sapply(fits[indSuccess], computeAUC, dmin=log10(dmin), dmax=log10(dmax), islogd=T)) # AUC, AUC0, AUCs in log10 sacle
@@ -157,20 +161,25 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 	names(IC50) <- models[indSuccess]
 	# make sure to use: models[indSuccess] since RSEs is only for successful model
 	ICmat <- data.frame(Drug=drug, CellLine=cellLine, Model=models[indSuccess], isBestModel=(RSEs==min(RSEs, na.rm=TRUE)), RSE=RSEs, ICmat0, AUCmat_trnsf)
+	ICmat_variance <- data.frame(Drug=drug, CellLine=cellLine, Model=models[indSuccess], isBestModel=(RSEs==min(RSEs, na.rm=TRUE)), ICmat0_variance)
 	datWithOutlierStatus <- data.frame(dat, isOutlier=indicator)
 	# append min and max dose so that the user can use this to truncate the predicted value
 	#ICx <- ICmat[indBest, ] # this has a mismatch! indBest is absolute index! ICmat removes the failures! Use name for tracking!!!
 	ICx <- ICmat[names(indBest), ]
+	ICx_variance <- ICmat_variance[names(indBest), ]
 	ICx$minLog10Dose <- log10(dmin)
 	ICx$maxLog10Dose <- log10(dmax)
 	ICx$unit <- unit
+	## add experiment setup info
+	resPrepDR <- prepDRdat(drMat, alpha=alpha, fitCtr=fitCtr, standardize=standardize)
+	info_experimentSetup <- prepDRdat2expInfo(resPrepDR)
 	res <- list(fits=fits, 
 		indSuccess=indSuccess, indBest=indBest, 
 		models=models, cols=cols, unit=unit, 
-		ICmat=ICmat, ICx=ICx, IC50=IC50,  
+		ICmat=ICmat, ICx=ICx, ICmat_variance=ICmat_variance, ICx_variance=ICx_variance, nParBest=nPar[names(indBest)], nPar=nPar, IC50=IC50,  
 		datWithOutlierStatus=datWithOutlierStatus,
 		bestModel=bestModel, RSEs=RSEs, drug=drug,
-		cellLine=cellLine
+		cellLine=cellLine, info_experimentSetup=info_experimentSetup
 		)
 	#browser()
 	if(plot){
@@ -185,8 +194,15 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 #' @param ind2plot index for the models that will be plotted; default is NA which leads to all curves available; when specified as 'best', the best model is selected 
 #' @param cols color for the lines. If cols is of length 1, then all lines (representing different models) have the same color as specified; if cols has a length larger than 1,
 #'  the function further checks if this length equals the number of fitted models. If this is the case, cols specifies colors for all models. Otherwise, default color is used. 
-#' @param type  either plot or line; when specified as line, it will only adds to an existing figure; When length(ind2plot)>1, type will be reset to plot
+#' @param pcols cols for points, similar to cols
+#' @param type the plot type. The user can specify more flexibly by specifying a vector of entities to plot including:
+#' either plot or line; when specified as line, it will only adds to an existing figure; When length(ind2plot)>1, type will be reset to plot
 #' 	which means the first curve will be made with plot() and additional ones with lines()
+#' 	plot: to start a new figure
+#' 	line: dose response curve
+#' 	points: observed data points
+#' 	control: control data points
+#' 	legend: legend for outlier status
 #' @param h horizontal line added to the figure, i.e. indicating IC50, IC70
 #' @param tag tag before main
 #' @param main main
@@ -195,20 +211,22 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 #' @param xlim xlim
 #' @param xlab xlab
 #' @param ylab ylab
-#' @param style if style == 'full', the outlier status as well as its legend will be shown; if style=='simple', the points and legend
-#'	for outlier status will be removed; if style=='points', only points will be shown; this is useful if to compare multiple curves from different drugs. 
+#' @param style deprecated. use type instead
 #' @param show whether to show RSE ('RSE'), IC50 ('IC50'), both ('both') or nothing ('None') in addition to the best model as legend
 #' @param cexLegend legend cex
 #' @param posLegend position of legend for model information 
 #' @param showTopN if specified show best N model in figure to avoid busy plotting; otherwise show all successful models. 
 #' @param lwd line width for the curves
+#' @param lwd line width for the curves
+#' @param lty line type for the curves
 #' @param cex.axis cex for axis annotation
 #' @param cex.lab cex for axis label
 #' @param addOutlierLegend whether to add legend for outlier status
+#' @param axes whether to add axes. only effective if type='plot'
 #' @export
-plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', h=c(0.3, 0.5, 0.7), tag=NA, main=NA, 
-	cex.main=1, xlab=NA, ylab=NA, ylim=NA, xlim=NA, show='both', cexLegend=NA, posLegend='bottomleft', showTopN=NA, lwd=2, cex.axis=1, cex.lab=1, 
-	addOutlierLegend=TRUE){
+plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, pcols=NA, type='plot', style='full', h=NULL, tag=NA, main=NA, 
+	cex.main=1, xlab=NA, ylab=NA, ylim=NA, xlim=NA, show='both', cexLegend=NA, posLegend='bottomleft', showTopN=NA, lwd=2, lty=1, cex.axis=1, cex.lab=1, 
+	addOutlierLegend=TRUE, axes=TRUE){
 	#browser()
 	# calculate the actual color to be used
 	# notice cols here is different from fitRes$models: it ensures col_use have equal length as length(fitRes$models)
@@ -225,6 +243,7 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 		# the only case to specify incompatible cols is when only plot the best model: populate all cols as the only col specified to get it done
 		col_use <- rep(cols, length(fitRes$models))
 	}
+	if(is.na(pcols[1])) pcols <- col_use
 	#attach(fitRes) # this is a place for bug!
 	with(fitRes, {
 	# draw dots
@@ -260,25 +279,46 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, type='plot', style='full', 
 	}
 	#browser()
 	if(length(ind2plot)>1)  {# when there are multiple curves to plot, type must be plot and additional lines 
-		type='plot'
+		type=c(type, 'plot') # so that to open a new figure
+	}
+	if(plotBest){
+		type=c(type, 'line')
+	}
+	if(length(pcols)==1){
+		pcols <- rep(pcols, length(col_use)) # in case only one color is specified
 	}
 	#browser()
-	if(type=='plot'){
+	if('plot' %in% type){ 
 		rMax <- getMaxResponse(fits[indSuccess]) # max(sapply(fits[indSuccess], function(x) max(x@fitDat[, 2]))) # maxum response value to control ylim
 		if(is.na(ylim[1]))
 			ylim <- c(0, max(1.2,rMax))
+		#browser() # pcol=pcols[ind2plot[1]], # unable to do at this moment
+		# cols: 3 elements, first one is for regular points
 		#browser()
-		plot(fits[[ind2plot[1]]], col=col_use[ind2plot[1]], lwd=lwd, main=main, style=style, addLegend=addOutlierLegend, 
-				xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim, bty='n', h=h, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)		
-	} else {
-		lines(fits[[ind2plot[1]]], col=col_use[ind2plot[1]], lwd=lwd)
+		plot(fits[[ind2plot[1]]], col=col_use[ind2plot[1]], cols=c(pcols[ind2plot[1]], 2, 3), lwd=lwd, lty=lty, main=main, type=type, 
+				xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim, bty='n', h=h, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, axes=axes)		
+	}
+	#browser()
+	if ('line' %in% type){
+		#browser()
+		#show_points <- ifelse('points' %in% type, TRUE, FALSE)
+		lines(fits[[ind2plot[1]]], col=col_use[ind2plot[1]], pcol=pcols[ind2plot[1]], lwd=lwd,type='line', lty=lty)
+	}
+	if ('points' %in% type){
+		#browser()
+		#show_points <- ifelse('points' %in% type, TRUE, FALSE)
+		lines(fits[[ind2plot[1]]], col=col_use[ind2plot[1]], pcol=pcols[ind2plot[1]], lwd=lwd,type='points', lty=lty)
+	}
+	if ('sem' %in% type){
+		#show_points <- ifelse('points' %in% type, TRUE, FALSE)
+		lines(fits[[ind2plot[1]]], col=col_use[ind2plot[1]], pcol=pcols[ind2plot[1]], lwd=lwd,type='sem', lty=lty)
 	}
 	#browser()
 	# draw all remaining models
 	if(length(ind2plot)>1) {
 			#browser()
 			for(i in ind2plot[-1]) {
-				lines(fits[[i]], col=col_use[i], lwd=lwd)
+				lines(fits[[i]], col=col_use[i], pcol=pcols[i], lwd=lwd, lty=lty)
 			}
 	}
 	#models_ <- models

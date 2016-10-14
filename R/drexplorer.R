@@ -25,7 +25,33 @@ NULL
 #' @name ryegrass
 NULL
 
+#'  Example raw data for calculating GI50, TGI and LC50
+#'
+#' This dataset is an example data set where the response is between -1 and 1. It is a 2 column data frame where the Dose column is the concentration of drug
+#' and Growth column is growth percentage as defined by the NCI60 method. 
+#'
+#'
+#' @references Holbeck, S. L., Collins, J. M., & Doroshow, J. H. (2010). Analysis of food and drug administration–approved anticancer agents in the NCI60 panel of human tumor cell lines. Molecular cancer therapeutics, 9(5), 1451-1460.
+#' @name datNCI60
+NULL
 
+
+#' general getter function for attributes in an object
+#'
+#' @param obj object with attributes
+#' @param what specify what attribute to get 
+#' @return attributes extracted 
+toget <- function(obj, what='avail'){
+	#browser()
+	if(what %in% names(attributes(obj))){
+		res <- attributes(obj)[[what]]
+	} else if (what =='avail'){
+		res <- names(attributes(obj))
+	} else {
+		res <- NULL
+	}
+	res
+}
 
 ### 0.9.4: add RSE in the model fitting
 ### 0.9.3: computeIC as Kevin's way. The original approach predicted from the model is still preserved. But default is to use interpolation. 
@@ -280,20 +306,23 @@ setGeneric('predict', package='stats' )
 #' @slot alpha A scalar for significance level. This specifies the significance level to identify outliers
 #' @slot fitCtr A logical value specifying whether to include the control points into the model fitting. 
 #' @slot tag A string (either 'drc' or 'DoseFinding') tracking which package is used for model fitting. 
+#' @slot modelName model name of the fitted model
+#' @slot nPar number of parameters for the fitted model
 #' @slot info A list that holds information related to the model, i.e. Residual Standard Error (rse).  
 #' @seealso \code{\link{drOutlier}, \link{drModels}, \link{drFit}, \link{drFit-class}}
-setClass('drFit', representation(fit='drFit0', fitDat='matrix', originalDat='matrix', alpha='numeric', fitCtr='logical', tag='character', info='list'))
+setClass('drFit', representation(fit='drFit0', fitDat='matrix', originalDat='matrix', alpha='numeric', fitCtr='logical', tag='character', modelName='character', nPar='numeric', info='list'))
 
-noNA <- function (dat) 
-{
-    sel <- complete.cases(dat)
-    if (is.null(dim(dat))) {
-        res <- dat[sel]
-    }
-    else {
-        res <- dat[sel, ]
-    }
-    res
+noNA <- function(dat, returnIndex=FALSE){
+	#browser()
+	sel <- complete.cases(dat)
+	if(returnIndex)
+		return(sel)
+	if(is.null(dim(dat))) { 
+		res <- dat[sel]
+	} else {
+		res <- dat[sel, ]
+	}
+	res
 }
 #' prepare dose-reponse data
 #'
@@ -311,6 +340,7 @@ noNA <- function (dat)
 #'  all data, set alpha=1. 
 #' @param fitCtr A logic vector specifying whether to include the control points into the model fitting.
 #' @param standardize whether to standardize (scale) the data based on control points. This should be disabled when no control data is supplied
+#' @export
 #' @return a list
 prepDRdat <- function(drMat, alpha=0.01, fitCtr=FALSE, standardize=TRUE){
 	datInput <- drMat # input dat
@@ -365,6 +395,7 @@ prepDRdat2expInfo <- function(resPrepDR){
 	# just focus on non-control data
 	datTrt <- datAll[isTrt, ]
 	N_dose <- length(unique(datTrt$dose))
+	Doses_observed <- str_c(sort(unique(datTrt$dose), decreasing=FALSE), collapse=',')
 	#browser()
 	N_techRep <- str_c(unique(table(datTrt$dose)), collapse=', ') # usually one number; can be comma-separated
 	SDres <- ddply(datTrt, .(dose), function(x) SD=sd(as.vector(data.matrix(x[, -1])), na.rm=T))
@@ -376,7 +407,8 @@ prepDRdat2expInfo <- function(resPrepDR){
 	maxSD <- fixTryErr(try(max(SDres[, 2], na.rm=T), silent=T))
 	meanSD <- fixTryErr(try(mean(SDres[, 2], na.rm=T), silent=T))
 	medianSD <- fixTryErr(try(median(SDres[, 2], na.rm=T), silent=T))
-    rr <- data.frame(N_dose=N_dose, N_techRep=N_techRep, meanSD_techRep=meanSD, medianSD_techRep=medianSD, minSD_techRep=minSD, maxSD_techRep=maxSD)
+    rr <- data.frame(N_dose=N_dose, Obs_dose=Doses_observed, N_techRep=N_techRep, meanSD_techRep=meanSD, medianSD_techRep=medianSD, minSD_techRep=minSD, maxSD_techRep=maxSD)
+    #browser()
     rr
 }
 
@@ -415,7 +447,7 @@ drFit <- function(drMat, modelName = "sigEmax", alpha=0.01, fitCtr=FALSE, standa
 	#browser()
 	resPrepDR <- prepDRdat(drMat, alpha=alpha, fitCtr=fitCtr, standardize=standardize)
 	dat <- resPrepDR$dat
-	rse <- NA
+	rse <- nPar <- NA
 	if(package=='drc'){
 		f <- get(modelName) ## i.e. the LL.3 or LL.3u function from drc package
         model <- try(drc::drm(response ~ dose, data=dat, fct=f())) ## pass f to drm in the drc package to fit dose-response curve
@@ -423,17 +455,20 @@ drFit <- function(drMat, modelName = "sigEmax", alpha=0.01, fitCtr=FALSE, standa
 			stop(cat("Model", modelName, "failed\n"))
         } else {
 			rse <- summary(model)$rseMat[1]
+			nPar <- length(model$fit$par)
 		}
 	} else {
 		model <- try(DoseFinding::fitMod('dose', 'response', data=dat, model=modelName))
         if(inherits(model, "try-error")) {
 			stop(cat("Model", modelName, "failed\n"))
         } else {
+        	coef.est <- coef(model)
+        	nPar <- length(coef.est)
 			rse <- sqrt(model$RSS/model$df) # sqrt(RSS/df)
 		}
 	}
 #browser()
-	res <- new('drFit', fit=model, fitDat=data.matrix(dat), originalDat=data.matrix(drMat), alpha=alpha, fitCtr=fitCtr, tag=package, 
+	res <- new('drFit', fit=model, fitDat=data.matrix(dat), originalDat=data.matrix(drMat), alpha=alpha, fitCtr=fitCtr, tag=package, modelName=modelName, nPar=nPar, 
 			info=list(RSE=rse, standardize=standardize, resPrepDR=resPrepDR))
 	res
 }
@@ -477,13 +512,18 @@ computeAUC <- function(fit, dmin, dmax, islogd=TRUE) {
 		res  
 	}
 	# reference response, e.g. the line response=1; this can be used to scale AUC
-	f_responseRef <- function(Dose, reference=1) {
-		res <- rep(reference, length(Dose))
+	f_responseRef <- function(Dose, reference=1, islogd=islogd) {
+		if(islogd) {
+			dd <- 10^(Dose)
+		} else {
+			dd <- Dose
+		}
+		res <- rep(reference, length(dd))
 		res 
 	}
 	#browser()
 	AUC <- try(integrate(f_response, lower=dmin, upper=dmax, islogd=islogd)$value, silent=TRUE)  
-	AUC0 <- try(integrate(f_responseRef, lower=dmin, upper=dmax)$value, silent=TRUE)  
+	AUC0 <- try(integrate(f_responseRef, lower=dmin, upper=dmax, islogd=islogd)$value, silent=TRUE)  
 	if(inherits(AUC, 'try-error')) {
 		cat(AUC)
 		AUC=NA
@@ -742,6 +782,98 @@ computeIC <- function(drFit, percent=0.50, log.d=TRUE, interpolation=TRUE, stepL
 	res
 }
 
+#' compute variance of IC value at each inhibition percentage 
+#'
+#' Notice that this does not allow log.d option for log10 dose; it also does not allow interpretation/extrapolation. When
+#' a response is not achieved, the variance estimate would be NA indicating not achieved 
+#'
+#' @param drFit A drFit object as returned by drFit() function.
+#' @param percent the inhibition ratio to be searched against. A vector between 0 and 1. Corresponding
+#'   response is 1-percent
+#' @return a vector of estimated variance of the doses achieving each response level
+#' @export
+computeICvariance <- function(drFit, percent=0.50){
+	#browser()
+	tag <- drFit@tag
+	fitObj <- drFit@fit
+	modelName <- drFit@modelName
+	response <- 1-percent
+	res <- tryCatch(
+	{
+	if(tag=="drc"){ # using model fitted from drc
+		#browser()
+		dfp <- length(fitObj$fit$par) #  number of parameters
+		# two columns: dose and variance
+		tmp <- drc:::ED(fitObj, respLev=response, interval="delta", type="absolute", display=FALSE)
+		#ic <- tmp[, 1]
+        varEst <- (tmp[, 2])^2 
+	}
+	if(tag=="DoseFinding"){ 
+		coef.est <- coef(fitObj)
+		cov.est <- vcov(fitObj)
+		dfp <- length(coef.est)
+		# only work for specific DoseFinding models
+		# NA can be possible when y>1 all over for all models: IAI itself is NA since no dose will achieve y<1 in this case!
+		if(modelName=='linear'){
+			# iteract through each response due to matrix operation
+			varEst <- foreach(i=1:length(response), .combine='c') %do% {
+				# ic <- (response[i]-coef.est[1])/coef.est[2]
+				der.coef <- c(-1/coef.est[2], -(response[i]-coef.est[1])/coef.est[2]^2)
+				as.vector(der.coef%*%cov.est%*%der.coef)
+			}
+			#dfp <- 2
+		} else if(modelName=='sigEmax') {
+			#browser()
+			varEst <- foreach(i=1:length(response), .combine='c') %do% {
+				ic <- coef.est[3]/((coef.est[2]/(response[i]-coef.est[1])-1)^(1/coef.est[4]))
+				der.coef <- c(coef.est[2]/(coef.est[4]*(coef.est[2]-response[i]+coef.est[1])*
+                           (response[i]-coef.est[1])),
+                           -1/(coef.est[4]*(coef.est[2]-response[i]+coef.est[1])), 1/coef.est[3],
+                           log(coef.est[2]/(response[i]-coef.est[1])-1)/coef.est[4]^2)
+				as.vector(der.coef%*%cov.est%*%der.coef*ic^2)
+			}
+			#dfp <- 4
+		} else if(modelName=='logistic') {
+			varEst <- foreach(i=1:length(response), .combine='c') %do% {
+				#ic <- coef.est[3]-coef.est[4]*log(coef.est[2]/(response[i]-coef.est[1])-1)
+				der.coef <- c(coef.est[4]*coef.est[2]/((coef.est[2]-response[i]+coef.est[1])*
+                           (response[i]-coef.est[1])),
+                           -coef.est[4]/(coef.est[2]-response[i]+coef.est[1]), 1,
+                           -log(coef.est[2]/(response[i]-coef.est[1])-1))
+				as.vector(der.coef%*%cov.est%*%der.coef)
+			}
+			#dfp <- 4
+		} else if(modelName=='exponential') {
+			varEst <- foreach(i=1:length(response), .combine='c') %do% {
+				#ic <- coef.est[3]*log((response[i]-coef.est[1])/coef.est[2]+1)
+				der.coef <-c(-coef.est[3]/(response[i]-coef.est[1]+coef.est[2]), 
+                        -coef.est[3]*(response[i]-coef.est[1])/(coef.est[2]*
+                        (response[i]-coef.est[1]+coef.est[2])),
+                        log((response[i]-coef.est[1]+coef.est[2])/coef.est[2]))
+				as.vector(der.coef%*%cov.est%*%der.coef)
+			}
+			# dfp <- 3
+		} else {
+			varEst <- rep(NA, length(response))
+		}
+	}
+	rr <- unname(varEst)
+	rr[is.na(rr)] <- NA
+	names(rr) <- paste('IC', percent*100, sep='')
+	rr
+	}, error=function(cond){
+		#message(sprintf('Diagnostic info: tag=%s; model=%s', tag, modelName))
+		#message('Variane estimation failed with:')
+		#message(cond)
+		rr <- rep(NA, length(response))
+		names(rr) <- paste('IC', percent*100, sep='')
+		return(rr)
+	}, finally={
+		# nothing
+	})
+	res
+}
+
 # computeIC(fit_sigEmax_alpha_o5, percent=0.5, log.d=TRUE, niter=500)
 
 ### IC by interpolation of predicted responses
@@ -779,7 +911,7 @@ icByInterpolation <- function(perc, xv, yv, ubound=max(xv), lbound=min(xv)){
 # resolution: min_d/resolution is the step length
 # stepLen: this overrides the default way of computing step length
 # on 20150406, use equal space between observed dose in log10 scale for grid; output 5000 grids; thus resolution and stepLen are not needed; 
-format_grid <- function(dose1, resolution=50, stepLen=NA){
+format_grid <- function(dose1, n=1000, resolution=50, stepLen=NA){
 	top <- 10^ceiling(log10(max(dose1))) ######### modified: sometimes only 6 doses are observed. This modification guarantees all 7 doses are present
 	bot <- 10^floor(log10(min(dose1)))
     dif <- diff(sort(dose1, decreasing=FALSE)); 
@@ -800,7 +932,7 @@ format_grid <- function(dose1, resolution=50, stepLen=NA){
 	#if(is.na(stepLen)){
 	#	stepLen <- abs(log10(min_d)/resolution)
 	#}
-	xGrid <- 10^approx(log10(sort(unique(dose1))), n=5000)$y # 5000 points equal space between each dose
+	xGrid <- 10^approx(log10(sort(unique(dose1))), n=n)$y # 5000 points equal space between each dose
 	list(top=top, bot=bot, xGrid=xGrid, stepLen=stepLen)
 }
 
@@ -815,25 +947,35 @@ format_grid <- function(dose1, resolution=50, stepLen=NA){
 #'	cols[3] to color outliers at 0.01 significance level. 
 #' @param col color used to specify the appearance of fitted curve
 #' @param lwd line width used to specify the appearance of fitted curve
-#' @param addLegend whether to add legend indicating outlier status
+#' @param addLegend currently deprecated. Please specify through type argument. whether to add legend indicating outlier status
 #' @param xlab x axis label
 #' @param ylab y axis label
 #' @param ylim y limit for display
 #' @param xlim x limit for display
 #' @param main main title 
-#' @param style when style='full', observed dose-response pairs are plotted including controls, fitted curve is superimposed and legend for outliers indicated;
+#' @param type the plot type. The user can specify more flexibly by specifying a vector of entities to plot including:
+#' 	line: dose response curve
+#' 	points: observed data points
+#' 	control: control data points
+#' 	legend: legend for outlier status
+#' @param style deprecated. Please specify through type argument. when style='full', observed dose-response pairs are plotted including controls, fitted curve is superimposed and legend for outliers indicated;
 #'  when style='simple', only fitted curve is plotted (without dose-response points and of course, not outlier status). 
 #' @param bty bty passed to legend
 #' @param h horizontal line to add indicating e.g. IC50 (h=0.5)
 #' @param cex.main cex for main title
 #' @param cex.axis cex for axis annotation
 #' @param cex.lab cex for axis label
+#' @param axes whether to add axes
+#' @param return whether return data for the plotted lines; this is useful if we want to reconstruct the lines elsewhere
 #' @aliases plot,drFit-method
 #' @export 
 setMethod('plot', signature(x='drFit'),
-          function(x, pchs=c(16, 17, 15), cols=c(1, 2, 3), col=4, lwd=2, addLegend=TRUE, xlab="Log10(Dose)", 
-		  ylab="Relative viability", ylim=NA, xlim=NA, main, style='full', bty='n', h=c(0.5), cex.main=1, cex.axis=1, cex.lab=1) {
+          function(x, pchs=c(16, 17, 15), cols=c(1, 2, 3), col=4, lwd=2, lty=1, addLegend=FALSE, xlab="Log10(Dose)", 
+		  ylab="Relative viability", ylim=NA, xlim=NA, main, type=c('line', 'points', 'control', 'legend', 'sem'), style='', bty='n', h=c(0.5), cex.main=1, cex.axis=1, cex.lab=1, axes=TRUE, return=FALSE) {
   	if(missing(main)) main <- attributes(x@fit)$model
+	if(style=='full') type <- c('line', 'points', 'control', 'legend')
+	if(style=='simple') type <- c('line')
+	if(addLegend) type <- c(type, 'legend')
 	#browser()
 	#tt <- prepDRdat(drMat, alpha=1, fitCtr=FALSE, standardize=x@info$standardize)
 	resPrepDR <- x@info$resPrepDR # result of prep DR data 
@@ -848,7 +990,7 @@ setMethod('plot', signature(x='drFit'),
 	trtScaled <- datAll$response[isTrt] # response at nonzero dosage
 	ctrScaled <- datAll$response[isCtrl] # response at nonzero dosage
 	#browser()
-	if(is.na(ylim[1])) ylim <- range(pretty(datAll$response))
+	if(is.na(ylim[1])) ylim <- c(0, range(pretty(datAll$response))[2])
 	## plot the original data points
 	# (1) outlier at both levels: for graphical purpose. the actual outlier identification is embedded in model fitting. 
 	#indicator1 <- drOutlier(drMat=drMat, alpha=0.05)  
@@ -865,32 +1007,6 @@ setMethod('plot', signature(x='drFit'),
 	top <- gg$top
 	bot <- gg$bot
 	xGrid <- gg$xGrid
-	#browser()
-	# initialize the plot: the scaled values for ctr and trt
-	par(bg="white")
-	## the actual data points
-	if(is.na(xlim[1])) xlim <- log10(c(bot, top))
-	#browser()
-	if(style!='simple') { # full or points
-		# points for dose>0
-		#browser()
-		plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim,
-           xlab=xlab, ylab=ylab, main=main, col=pCols[isTrt], pch=pPchs[isTrt], cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)
-		## more intuitive axis 
-	} else {
-		#browser()#simple no points
-		plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim,
-           xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, col=pCols[isTrt], pch=pPchs[isTrt], type='n')
-	}	
-	# only add the points if style is  full
-	if(style!='simple'){ # full or points
-		# points for dose=0
-		if(hasCtrl)	points(rep(log10(bot), length(ctrScaled)), ctrScaled, pch=8)	
-	}
-	abline(h=h, col='grey')
-	### add curve from the fitted model
-	y <- predict(x, newData=xGrid)
-	#browser()
 	# modified on 02/23/2014: use a subset of points so that the pdf figure will not be too large
 	## too many points and leads to a large pdf: use a subset of the points
 	## modified on 20150406: grid out has 5000 points, this should be reasonable; no subsetting is needed if grid length less than 10000
@@ -901,21 +1017,79 @@ setMethod('plot', signature(x='drFit'),
 	} else {
 		indSel <- 1:length(xGrid)
 	}
+	y <- predict(x, newData=xGrid)
+	dd <- data.frame(line_x=log10(xGrid)[indSel], line_y=y[indSel])
+	res <- list(dat=dd, ylim=ylim)
+	datAll_trt <- subset(datAll, dose!=0)
+	mysmry <- ddply(datAll_trt, .(dose), summarise, N=length(response), meanResponse=mean(response, na.rm=TRUE), stdResponse=sd(response, na.rm=TRUE))
+	N_rep <- mean(mysmry$N, na.rm=T) # N replicates, averaged across doses
+	mysmry$ss <- mysmry$stdResponse/sqrt(N_rep)
+	# where no plot is needed
+	if(return) 
+		return(res)
+	#browser()
+	# initialize the plot: the scaled values for ctr and trt
+	par(bg="white")
+	## the actual data points
+	if(is.na(xlim[1])) xlim <- log10(c(bot, top))
+	#browser()
+	if('points' %in% type){
+		plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd,
+           xlab=xlab, ylab=ylab, main=main, col=pCols[isTrt], pch=pPchs[isTrt], cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)
+	} else {
+		# no points; so just the axis
+		plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd, 
+           xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, col=pCols[isTrt], pch=pPchs[isTrt], type='n')
+	}
+	if('control' %in% type) {
+		# add control points if available
+		if(hasCtrl)	points(rep(log10(bot), length(ctrScaled)), ctrScaled, pch=8)	
+	}
+	# not supported on 07/21/2015 to break compatibility: current implementation is more flexible
+	#if(style!='simple') { # full or points
+		# just points for dose>0
+		#browser()
+	#	plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, 
+     #      xlab=xlab, ylab=ylab, main=main, col=pCols[isTrt], pch=pPchs[isTrt], cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)
+		## more intuitive axis 
+	#} else {
+	#	#browser()#simple no points
+	#	plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, 
+    #       xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, col=pCols[isTrt], pch=pPchs[isTrt], type='n')
+	#}	
+	# only add the points if style is  full
+	#if(style!='simple'){ # full or points
+		# points for dose=0
+	#	if(hasCtrl)	points(rep(log10(bot), length(ctrScaled)), ctrScaled, pch=8)	
+	#}
+	if(!is.null(h))	abline(h=h, col='grey')
+	### add curve from the fitted model
+	#browser()
 	#lines(log10(xGrid), y, col=col, lwd=lwd)
 	#browser()
-	lines(log10(xGrid)[indSel], y[indSel], col=col, lwd=lwd)
+	if('line' %in% type)
+		lines(log10(xGrid)[indSel], y[indSel], col=col, lwd=lwd, lty=lty)
+	# add outlier legend
+	if('legend' %in% type)
+		legend("topright", c("okay", "5%", "1%"), col=cols, pch=pchs, bty=bty)
+	#browser()
+	if('sem' %in% type)
+		with(mysmry, errbar(log10(dose), meanResponse, meanResponse + ss, meanResponse - ss, add=T, errbar.col=col, lwd=0.7, col=col, cex=0.6))
 	## add legend
 	#if(addLegend) legend("topright", c("okay", "95%", "99%"), col=cols, pch=pchs) ## use significance level to remove confusion (modified on 09/03/2013)
-	if(style!='full')
-		addLegend <- FALSE # simple style removes the outlier status
+	#if(style!='full')
+	#	addLegend <- FALSE # simple style removes the outlier status
 	# if alpha=1, of course no need for legend
-	if(x@alpha==1) addLegend <- FALSE
-	if(addLegend) legend("topright", c("okay", "5%", "1%"), col=cols, pch=pchs, bty=bty)
+	#if(x@alpha==1) addLegend <- FALSE
+	#if(addLegend) legend("topright", c("okay", "5%", "1%"), col=cols, pch=pchs, bty=bty)
 	#browser()
 })
 ## @rdname drFit-class
 #' lines method for drFit object
 #' @param x a drFit object	   
+#' @param type the plot type. The user can specify more flexibly by specifying a vector of entities to plot including:
+#' 	line: dose response curve
+#' 	points: observed data points
 #' @param col line color
 #' @param lwd line width  
 #' @param show_points whether to add points for dose-response paires (dose not 0) 
@@ -925,7 +1099,8 @@ setMethod('plot', signature(x='drFit'),
 #' @aliases lines,drFit-method
 #' @export 
 setMethod('lines', signature(x='drFit'),
-    function(x, col=5, lwd=2, show_points=FALSE, pcol='black', pch=16, ...) {
+    function(x, col=5, lwd=2, lty=1, show_points=FALSE, pcol='black', pch=16, type=c('line'), ...) {
+    if(show_points) type <- c(type, 'points')
 	resPrepDR <- x@info$resPrepDR # result of prep DR data 
 	datAll <- resPrepDR$datAll # scaled data including control (if available) and outliers
 	isTrt <- resPrepDR$isTrt # global indicator if data is treatment
@@ -938,6 +1113,10 @@ setMethod('lines', signature(x='drFit'),
 	bot <- gg$bot
 	xGrid <- gg$xGrid
 	y <- predict(x, newData=xGrid)
+	datAll_trt <- subset(datAll, dose!=0)
+	mysmry <- ddply(datAll_trt, .(dose), summarise, N=length(response), meanResponse=mean(response, na.rm=TRUE), stdResponse=sd(response, na.rm=TRUE))
+	N_rep <- mean(mysmry$N, na.rm=T) # N replicates, averaged across doses
+	mysmry$ss <- mysmry$stdResponse/sqrt(N_rep)
 	# modified on 02/23/2014: use a subset of points so that the pdf figure will not be too large
 	## modified on 20150406: grid out has 5000 points, this should be reasonable; no subsetting is needed if grid length less than 10000
 	if(length(xGrid)>10000){
@@ -947,13 +1126,92 @@ setMethod('lines', signature(x='drFit'),
 	} else {
 		indSel <- 1:length(xGrid)
 	}
-	lines(log10(xGrid)[indSel], y[indSel], col=col, lwd=lwd, ...)
-	# sometimes the added lines can be accompanied with points to show original data
-	if(show_points){
+	#browser()
+	if('line' %in% type)	
+		lines(log10(xGrid)[indSel], y[indSel], col=col, lwd=lwd, lty=lty, ...)
+	if('points' %in% type)
 		points(log10(dose1), trtScaled, col=pcol, pch=pch)
-	}
+	if('sem' %in% type)
+		with(mysmry, errbar(log10(dose), meanResponse, meanResponse + ss, meanResponse - ss, add=T, errbar.col=col, lwd=0.7, col=col, cex=0.6))
+	# sometimes the added lines can be accompanied with points to show original data
+	#if(show_points){
+	#	points(log10(dose1), trtScaled, col=pcol, pch=pch)
+	#}
 	#lines(log10(xGrid), y, col=col, lwd=lwd)	  
-})		  
+})	
+
+# from Hmisc
+errbar <- function (x, y, yplus, yminus, cap = 0.015, main = NULL, sub = NULL, 
+    xlab = as.character(substitute(x)), ylab = if (is.factor(x) || 
+        is.character(x)) "" else as.character(substitute(y)), 
+    add = FALSE, lty = 1, type = "p", ylim = NULL, lwd = 1, pch = 16, 
+    errbar.col = par("fg"), Type = rep(1, length(y)), ...) 
+{
+    if (is.null(ylim)) 
+        ylim <- range(y[Type == 1], yplus[Type == 1], yminus[Type == 
+            1], na.rm = TRUE)
+    if (is.factor(x) || is.character(x)) {
+        x <- as.character(x)
+        n <- length(x)
+        t1 <- Type == 1
+        t2 <- Type == 2
+        n1 <- sum(t1)
+        n2 <- sum(t2)
+        omai <- par("mai")
+        mai <- omai
+        mai[2] <- max(strwidth(x, "inches")) + 0.25
+        par(mai = mai)
+        on.exit(par(mai = omai))
+        plot(NA, NA, xlab = ylab, ylab = "", xlim = ylim, ylim = c(1, 
+            n + 1), axes = FALSE, ...)
+        axis(1)
+        w <- if (any(t2)) 
+            n1 + (1:n2) + 1
+        else numeric(0)
+        axis(2, at = c(seq.int(length.out = n1), w), labels = c(x[t1], 
+            x[t2]), las = 1, adj = 1)
+        points(y[t1], seq.int(length.out = n1), pch = pch, type = type, 
+            ...)
+        segments(yplus[t1], seq.int(length.out = n1), yminus[t1], 
+            seq.int(length.out = n1), lwd = lwd, lty = lty, col = errbar.col)
+        if (any(Type == 2)) {
+            abline(h = n1 + 1, lty = 2, ...)
+            offset <- mean(y[t1]) - mean(y[t2])
+            if (min(yminus[t2]) < 0 & max(yplus[t2]) > 0) 
+                lines(c(0, 0) + offset, c(n1 + 1, par("usr")[4]), 
+                  lty = 2, ...)
+            points(y[t2] + offset, w, pch = pch, type = type, 
+                ...)
+            segments(yminus[t2] + offset, w, yplus[t2] + offset, 
+                w, lwd = lwd, lty = lty, col = errbar.col)
+            at <- pretty(range(y[t2], yplus[t2], yminus[t2]))
+            axis(side = 3, at = at + offset, labels = format(round(at, 
+                6)))
+        }
+        return(invisible())
+    }
+    if (add) 
+        points(x, y, pch = pch, type = type, ...)
+    else plot(x, y, ylim = ylim, xlab = xlab, ylab = ylab, pch = pch, 
+        type = type, ...)
+    xcoord <- par()$usr[1:2]
+    smidge <- cap * (xcoord[2] - xcoord[1])/2
+    segments(x, yminus, x, yplus, lty = lty, lwd = lwd, col = errbar.col)
+    if (par()$xlog) {
+        xstart <- x * 10^(-smidge)
+        xend <- x * 10^(smidge)
+    }
+    else {
+        xstart <- x - smidge
+        xend <- x + smidge
+    }
+    segments(xstart, yminus, xend, yminus, lwd = lwd, lty = lty, 
+        col = errbar.col)
+    segments(xstart, yplus, xend, yplus, lwd = lwd, lty = lty, 
+        col = errbar.col)
+    return(invisible())
+}
+
 ######### check utility
 check.drMat <- function(drMat){
 	#browser()

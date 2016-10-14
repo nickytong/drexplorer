@@ -1,8 +1,8 @@
 Package: drexplorer
 Type: Package
 Title: Dose-response Explorer
-Version: 1.1.1
-Date: 2015-04-17
+Version: 1.2.1
+Date: 2015-02-17
 Author: Pan Tong, Kevin R Coombes
 Maintainer: Pan Tong <ptong1@mdanderson.org>
 Description: There is a great variety of models developed for dose-response
@@ -19,16 +19,18 @@ Depends:
     R (>= 3.0.0)
 Imports:
     methods,
+    DoseFinding,
+    drc,
     fgui,
     stringr,
     epiR,
     RColorBrewer,
-    scales,
-    drc,
-    foreach,
-    DoseFinding
+    grid,
+    ggplot2,
+    foreach
 Suggests:
     knitr,
     rmarkdown
 NeedsCompilation: no
 VignetteBuilder: knitr
+RoxygenNote: 5.0.1

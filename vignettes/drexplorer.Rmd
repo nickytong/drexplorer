@@ -6,12 +6,13 @@ output:
   html_document:
     toc: true
     theme: united
+vignette: >
+  %\VignetteIndexEntry{A Worked Out Example of Managing with abbyyR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
-<!--
-%\VignetteEngine{knitr::rmarkdown}
-%\VignetteIndexEntry{drexplorer user manual}
--->
+
 
 ## Introduction
 There is a great variety of models developed for dose-response data, many of which have been implemented in 
@@ -192,16 +193,41 @@ legend("bottomleft", c('alpha=0.05', 'ignored'), col=c(6, 7), lwd=3)
 We provide a wrapper function (fitOneExp) incorporating outlier detection, fitting multiple models, selecting the best model and estimating IC values. 
 Users can specify multiple models from the **drc** and **DoseFinding** packages using the *models* parameter. An example is shown below.
 
-```{r}
+```{r, eval=TRUE}
 fitExp <- fitOneExp(ryegrass[, c(2, 1)], drug='', cellLine='', unit='', models=c('sigEmax', 'LL.4', 'LL.5', 'LL.3', 'LL.3u', 'logistic'), alpha=0.05, interpolation=TRUE)
 ```
 
 The fitted models can be compared through the plotOneExp function as below:
 
-```{r, fig.width=7, fig.height=7}
+```{r, fig.width=7, fig.height=7, eval=TRUE}
 plotOneExp(fitExp, main='')
 
 ```
+
+## Hill Equation
+
+The Hill equation is a special dose-response model. Below we demonstrate how to specifically fit this model.
+We first prepare standardized data where the response is scaled to between 0 and 1. A generic plot function is implemented for the
+fitted object.  
+```{r}
+sdat <- prepDRdat(drMat=ryegrass[, c(2, 1)], alpha=0.01, fitCtr=FALSE, standardize=TRUE)$dat
+fit_hill <- hillFit(d=sdat$dose, y=sdat$response)
+plot(fit_hill)
+fit_hill[1:length(fit_hill)]
+```
+
+## NCI60 Method
+The NCI60 method deals with data that contains information for day 0 treatment. The response is between -1 and 1 and thus
+quite different from the previous analysis. Below we show how to fit models to estimate GI50, LC50 and TGI. Similarly, the fitted 
+object can be visualized with a generic plot function. 
+Notice that the parameter estimates are based on original drug concentration, not log10 based. 
+
+```{r}
+fit_nci60 <- nci60Fit(d=datNCI60$Dose, y=datNCI60$Growth/100)
+fit_nci60[1:length(fit_nci60)]
+plot(fit_nci60)
+```
+
 
 ## Drug Interaction Index
 Administering two drugs simultaneously might induce stronger effect than if administered

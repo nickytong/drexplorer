@@ -1,25 +1,38 @@
 # Sample .travis.yml for R projects.
-#
+# 
 # See README.md for instructions.
+# adapted from: https://github.com/jokergoo/ComplexHeatmap/blob/master/.travis.yml
 
-language: c
-# To build on OSX, switch the previous line to
-# language: objective-c
+language: r
 
-before_install:
-  - curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
-  - chmod 755 ./travis-tool.sh
-  - ./travis-tool.sh bootstrap
-install:
-  - ./travis-tool.sh install_deps
-script: ./travis-tool.sh run_tests
+sudo: required
+
+r-packages:
+- fgui
+- stringr
+- plyr
+- epiR
+- RColorBrewer
+- scales
+- drc
+- foreach
+- DoseFinding
+- knitr
+- rmarkdown
+- ggplot2
+- grid
+
+
+r_check_args: --no-build-vignettes --no-vignettes
+
+after_success:
+  - Rscript -e 'library(covr);codecov()'
 
 after_failure:
   - ./travis-tool.sh dump_logs
-  
+
 # Configuration options below this line are suggested options.
 notifications:
   email:
     on_success: change
     on_failure: change
-
