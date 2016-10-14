@@ -24,9 +24,6 @@ r-packages:
 
 
 
-after_success:
-  - Rscript -e 'library(covr);codecov()'
-
 after_failure:
   - ./travis-tool.sh dump_logs
 
