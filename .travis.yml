@@ -22,7 +22,8 @@ r-packages:
 - ggplot2
 - grid
 
-
+r_check_args: "--no-build-vignettes --no-vignettes"
+r_build_args: "--no-build-vignettes"
 
 after_failure:
   - ./travis-tool.sh dump_logs
