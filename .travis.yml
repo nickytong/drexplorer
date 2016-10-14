@@ -23,7 +23,6 @@ r-packages:
 - grid
 
 
-r_check_args: --no-build-vignettes --no-vignettes
 
 after_success:
   - Rscript -e 'library(covr);codecov()'
