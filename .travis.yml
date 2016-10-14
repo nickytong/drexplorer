@@ -4,8 +4,9 @@
 # adapted from: https://github.com/jokergoo/ComplexHeatmap/blob/master/.travis.yml
 
 language: r
+cache: packages
 
-sudo: required
+sudo: false
 
 r-packages:
 - fgui
