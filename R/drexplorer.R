@@ -782,7 +782,7 @@ computeIC <- function(drFit, percent=0.50, log.d=TRUE, interpolation=TRUE, stepL
 	res
 }
 
-#' compute variance of IC value at each inhibition percentage 
+#' compute variance of IC value at each inhibition percentage (original dose scale)
 #'
 #' Notice that this does not allow log.d option for log10 dose; it also does not allow interpretation/extrapolation. When
 #' a response is not achieved, the variance estimate would be NA indicating not achieved 
@@ -970,7 +970,7 @@ format_grid <- function(dose1, n=1000, resolution=50, stepLen=NA){
 #' @aliases plot,drFit-method
 #' @export 
 setMethod('plot', signature(x='drFit'),
-          function(x, pchs=c(16, 17, 15), cols=c(1, 2, 3), col=4, lwd=2, lty=1, addLegend=FALSE, xlab="Log10(Dose)", 
+          function(x, pchs=c(16, 17, 15), cols=c(1, 2, 3), col=4, lwd=2, lty=1, addLegend=FALSE, xlab="Dose", 
 		  ylab="Relative viability", ylim=NA, xlim=NA, main, type=c('line', 'points', 'control', 'legend', 'sem'), style='', bty='n', h=c(0.5), cex.main=1, cex.axis=1, cex.lab=1, axes=TRUE, return=FALSE) {
   	if(missing(main)) main <- attributes(x@fit)$model
 	if(style=='full') type <- c('line', 'points', 'control', 'legend')
@@ -1033,13 +1033,25 @@ setMethod('plot', signature(x='drFit'),
 	## the actual data points
 	if(is.na(xlim[1])) xlim <- log10(c(bot, top))
 	#browser()
-	if('points' %in% type){
+	# 'plot' %in% type will start a new plot
+	if(!'plot' %in% type){
+	# 	plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd,
+    #       xlab=xlab, ylab=ylab, main=main, col=pCols[isTrt], pch=pPchs[isTrt], cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)
+		# NOW IN LOG annotation
 		plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd,
-           xlab=xlab, ylab=ylab, main=main, col=pCols[isTrt], pch=pPchs[isTrt], cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)
+	           xlab=xlab, ylab=ylab, main=main, col=pCols[isTrt], pch=pPchs[isTrt], cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, xaxt="n")
+		atx <- axTicks(1)
+		labels <- sapply(atx,function(i) as.expression(bquote(10^ .(i))))
+		axis(1,at=atx,labels=labels)
 	} else {
 		# no points; so just the axis
-		plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd, 
-           xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, col=pCols[isTrt], pch=pPchs[isTrt], type='n')
+		# plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd, 
+  		#         xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, col=pCols[isTrt], pch=pPchs[isTrt], type='n')
+  		plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd,
+	           xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, col=pCols[isTrt], pch=pPchs[isTrt], type='n', xaxt="n")
+		atx <- axTicks(1)
+		labels <- sapply(atx,function(i) as.expression(bquote(10^ .(i))))
+		axis(1,at=atx,labels=labels)
 	}
 	if('control' %in% type) {
 		# add control points if available

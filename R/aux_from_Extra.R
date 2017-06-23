@@ -138,6 +138,7 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 			indBest <- indSuccess[which.min(RSEs)] # find best model by RSE
 			bestModel <- models[indBest]
 	} else {
+		#browser()
 		stop(sprintf('None of the specified models can be fitted in cell line: %s drug: %s\n\tSpecified models are: %s', cellLine, drug, str_c(models, collapse=', ')))
 		#message(sprintf('None of the specified models can be fitted in cell line: %s drug: %s\n\tSpecified models are: %s', cellLine, drug, str_c(models)))
 		#res <- NA
@@ -154,6 +155,18 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 	nPar <- sapply(fits[indSuccess], function(x) x@nPar)
 	ICmat0_variance <- t(sapply(fits[indSuccess], computeICvariance, percent=percentile))
 	ICmat0 <- t(sapply(fits[indSuccess], computeIC, percent=percentile, log.d=log.d, interpolation=interpolation))
+	# if IC value is not achieved or overshoot, variance estimate should be NA
+	if(log.d){
+		dmin1 <- log10(dmin)
+		dmax1 <- log10(dmax)
+	} else {
+		dmin1 <- dmin
+		dmax1 <- dmax
+	}
+	ICmat_maskmat <- ICmat0 >= dmax1 | ICmat0 <= dmin1
+	#browser()
+	ICmat0_variance_masked <- ICmat0_variance
+	ICmat0_variance_masked[which(ICmat_maskmat, arr.ind=TRUE)] <- NA
 	#AUCmat_untrnsf <- t(sapply(fits[indSuccess], computeAUC, dmin=dmin, dmax=dmax, islogd=F)) # AUC, AUC0, AUCs in original scale
 	AUCmat_trnsf <- t(sapply(fits[indSuccess], computeAUC, dmin=log10(dmin), dmax=log10(dmax), islogd=T)) # AUC, AUC0, AUCs in log10 sacle
 	#getAUC(fit_sigEmax_alpha_o5, dmin=-0.027, dmax=1.477, islogd=T)
@@ -161,7 +174,7 @@ fitOneExp <- function(dat, ### data format specific to: i.e. ExportToR 2013 07 0
 	names(IC50) <- models[indSuccess]
 	# make sure to use: models[indSuccess] since RSEs is only for successful model
 	ICmat <- data.frame(Drug=drug, CellLine=cellLine, Model=models[indSuccess], isBestModel=(RSEs==min(RSEs, na.rm=TRUE)), RSE=RSEs, ICmat0, AUCmat_trnsf)
-	ICmat_variance <- data.frame(Drug=drug, CellLine=cellLine, Model=models[indSuccess], isBestModel=(RSEs==min(RSEs, na.rm=TRUE)), ICmat0_variance)
+	ICmat_variance <- data.frame(Drug=drug, CellLine=cellLine, Model=models[indSuccess], isBestModel=(RSEs==min(RSEs, na.rm=TRUE)), ICmat0_variance_masked)
 	datWithOutlierStatus <- data.frame(dat, isOutlier=indicator)
 	# append min and max dose so that the user can use this to truncate the predicted value
 	#ICx <- ICmat[indBest, ] # this has a mismatch! indBest is absolute index! ICmat removes the failures! Use name for tracking!!!
@@ -252,7 +265,7 @@ plotOneExp <- function(fitRes, ind2plot=NA, cols=NA, pcols=NA, type='plot', styl
 	RSEs_aug <- sapply(fits, function(x) ifelse(is.null(x), NA, x@info$RSE)) # length matched with fits
 	indBest <- indSuccess[which.min(RSEs)] # find best model by RSE
 	bestModel <- models[indBest]
-	if(is.na(xlab)) xlab <- 'Log10(Dose)'
+	if(is.na(xlab)) xlab <- 'Dose'
 	#xlab <- sprintf('Log10(Dose) of %s', drug)
 	if(is.na(ylab)) ylab <- 'Relative viability'
 	#browser()

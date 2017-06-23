@@ -5,7 +5,7 @@
 \title{Estimate the interaction index as well as its confidence interval using delta method for fixed ratio design}
 \usage{
 fitIAI(d1, d2, e, E = seq(0.05, 0.95, 0.005), name1 = "Drug A",
-  name2 = "Drug B", alpha = 0.05, d2.d1.force = NA)
+  name2 = "Drug B", alpha = 0.05, d2.d1.force = NA, tol = 0.01)
 }
 \arguments{
 \item{d1}{dose for drug 1}

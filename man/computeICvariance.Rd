@@ -2,7 +2,7 @@
 % Please edit documentation in R/drexplorer.R
 \name{computeICvariance}
 \alias{computeICvariance}
-\title{compute variance of IC value at each inhibition percentage}
+\title{compute variance of IC value at each inhibition percentage (original dose scale)}
 \usage{
 computeICvariance(drFit, percent = 0.5)
 }

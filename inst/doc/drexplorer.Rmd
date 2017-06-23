@@ -340,6 +340,26 @@ Compared to the original Chou-Talalay method, we now observed the dose-response 
 are more reliable. Since some response values are not achieved in the data, it is hard to extrapolate what dose would achieve those responses. This makes the estimation of IAI
 unavailable in some regions. Thus, this new approach is more conservative compared to the original Chou-Talalay method. 
 
+## HSA and Bliss Model
+Below we illustrate the application of HSA (Highest Single Agent) model and Bliss independence model.
+
+```{r, fig.width=6, fig.height=6, message=FALSE, warning=FALSE}
+fit_hsa_bliss <- fitHSA_ray(d1=UMSCC22B$dose1, d2=UMSCC22B$dose2, 
+            e=UMSCC22B$e, name1='SCH66336', name2='4HPR', islogd=FALSE)
+plotHSA_ray(fit_hsa_bliss, type=c('line', 'HSA', 'se'), main=sprintf('Delta AUC: HSA=%.2f', fit_hsa_bliss$deltaAUC_HSA), legend=TRUE, plotSetup=TRUE)
+```
+
+The blue line in the above figure shows the estimates of additive effect from HSA model. Since the combination kills more than the additive effect, it suggests
+an trend towards synergy, quantified by delta AUC of -0.17, which is defined as the AUC of combination subtracted the AUC of additive effect.
+
+```{r, fig.width=6, fig.height=6, message=FALSE, warning=FALSE}
+plotHSA_ray(fit_hsa_bliss, type=c('line', 'Bliss', 'se'), main=sprintf('Delta AUC: Bliss=%.2f', fit_hsa_bliss$deltaAUC_Bliss), legend=TRUE, plotSetup=TRUE)
+```
+
+Similarly, the purple line in the above figure shows the estimates of additive effect from Bliss model. Since the combination kills less than the additive effect, it suggests
+an trend towards antagonistic effect, quantified by delta AUC of 0.06, which is defined as the AUC of combination subtracted the AUC of additive effect.
+
+Notice that different definition of the baseline model for additive effect leads to different result for drug interactions. Usually, HSA model is a less stringent criteria compared to Bliss model. 
 
 <!--    for MacSynergism II   --> 
 <!--    write.csv(dcast(nl22B2, schd~hpr), 'n122B2_wide_format.csv')   --> 

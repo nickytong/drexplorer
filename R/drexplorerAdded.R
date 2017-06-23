@@ -47,6 +47,7 @@ plotCCC <- function(x, y, xlab=NA, ylab=NA, tag='', col_legend='red', pch=1, mai
 	tdf <- noNA(data.frame(x=x, y=y))
 	x <- tdf$x
 	y <- tdf$y
+	#browser()
 	## the default epi.ccc use sd(y)/sd(x) and y-x as the scale and location shift!
 	ccc_fit <- epi.ccc(x, y, ci = "z-transform", conf.level = 0.95) 
 	############### outlier calculation
@@ -101,11 +102,12 @@ plotCCC <- function(x, y, xlab=NA, ylab=NA, tag='', col_legend='red', pch=1, mai
 		} else {
 			xlim <- rr
 		}
+		#browser()
 		plot(x, y, xlab=xlab, ylab=ylab, main=str_c(tag, '\n', main, collapse=''), pch=pch, cex=cex, xlim=xlim, ylim=ylim)
 		#abline(0, 1, col=80, lty=2, lwd=2)
 		abline(a = 0, b = 1, lty = 2, col=4, lwd=3) # identical line
 		#browser()
-		abline(lm(y~x), lty = 1, lwd=2) # lm line
+		try(abline(lm(y~x), lty = 1, lwd=2), silent=TRUE) # lm line
 		legend('bottomright', legend = c("Perfect concordance", "Observed linear trend"), lty = c(2,1), bty = "n", col=c(4, 1), lwd=c(3, 2), text.col=col_legend)
 		labCCC <- sprintf("-->CCC: %.3f, (95%% CI %.2f~%.2f)", res['ccc'], res['ccc_lo'], res['ccc_hi'])
 		lab_s_shift <- sprintf("-->Scale shift: %.2f", res['s_shift'])

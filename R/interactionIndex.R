@@ -120,10 +120,14 @@ fit_median_efect <- function(d1, d2, e, name1='Drug A', name2='Drug B', d2.d1, b
 	logd <- log(totdose) 
 	#log10d <- log10(totdose) # log10(dose)	
 	##     define an indicator for identifying doses satisfying dose2/dose1=d2.d1
-	ind.ratio  <- dose1!=0 & abs(dose2-d2.d1*dose1)<0.00001
+	# this is very sensitive to mis-ratio;
+	## modified 2017/02/24: let the user to make sure the data is fixed ratio; using all data in combo experiment
+	#ind.ratio  <- dose1!=0 & abs(dose2-d2.d1*dose1)<0.00001
+	ind.ratio  <- dose1!=0 & dose2!=0
 	ind2  <- abs(dose2-d2.d1*dose1)<0.0001 # to also include 0 dose for dose-response curve without taking log
 	##     Estimate the parameters using median-effect plot for two single drugs and 
 	##     their combination at the fixed ratio (dose of drug 2)/(dose of drug 1)=d2.d1.
+	#browser()
 	lm1 <- lm(resp[dose2==0 & dose1!=0]~logd[dose2==0 & dose1!=0])
 	dm1 <- exp(-summary(lm1)$coef[1,1]/summary(lm1)$coef[2,1])
 	lm2 <- lm(resp[dose1==0 & dose2!=0]~logd[dose1==0 & dose2!=0])
@@ -260,8 +264,9 @@ plot_median_effect <- function(medianEffect, type=c('medianEffect', 'doseRespons
 #'   of interaction index for assessing multiple drug interaction. Statistics in biopharmaceutical research, 1(1), 4-17.
 #' @references Lee, J. Jack, et al (2007). Interaction index and different 
 #'    methods for determining drug interaction in combination therapy. Journal of biopharmaceutical statistics 17.3 461-480.
-fitIAI <- function(d1, d2, e, E=seq(0.05, 0.95, 0.005), name1='Drug A', name2='Drug B', alpha=0.05, d2.d1.force=NA){
-	res_design <- detect_ray_design(d1=d1, d2=d2, e=e, d2.d1.force=d2.d1.force)
+fitIAI <- function(d1, d2, e, E=seq(0.05, 0.95, 0.005), name1='Drug A', name2='Drug B', alpha=0.05, d2.d1.force=NA, tol=0.01){
+	res_design <- detect_ray_design(d1=d1, d2=d2, e=e, d2.d1.force=d2.d1.force, tol=tol)
+	#browser()
 	# fit median-effect model
 	medianEffect <- fit_median_efect(d1=d1, d2=d2, e=e, d2.d1=res_design$d2.d1, name1=name1, name2=name2)
 	if(res_design$isRayDesign!=TRUE) { # not fixed ratio design, fitCI is NULL
@@ -305,7 +310,8 @@ plotIAI <- function(fit, type=c('IAI', 'medianEffect', 'doseResponseCurve', 'con
 	if(type=='IAI' & !is.null(fit$CI)){
 		resCI <- fit$CI
 		#browser()
-		if(is.null(ylim)) ylim <- range(resCI$IAI)
+		#if(is.null(ylim)) ylim <- range(resCI$IAI)
+		if(is.null(ylim)) ylim <- c(0.01, 10)
 		op <- par(mar=c(8, 5, 4, 4) + 0.1)
 		lty_E <- 4
 		# CI
@@ -319,6 +325,7 @@ plotIAI <- function(fit, type=c('IAI', 'medianEffect', 'doseResponseCurve', 'con
 		# IAI ~ E
 		fa <- fit$meta$e
 		E <- resCI$E
+		#browser()
 		with(resCI, plot(E, IAI, log="y", type="l", xlab="", xaxt='n', ylab="Interaction Index", 
 			xlim=c(min(E, fa),max(E, fa)), ylim=ylim,cex=0.6, main='Interaction plot')) 
 		axis(1, at=pretty(range(E)), col="black",lwd=1)

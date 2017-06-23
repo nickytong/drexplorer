@@ -6,7 +6,7 @@
 \title{plot method for drFit object}
 \usage{
 \S4method{plot}{drFit}(x, pchs = c(16, 17, 15), cols = c(1, 2, 3),
-  col = 4, lwd = 2, lty = 1, addLegend = FALSE, xlab = "Log10(Dose)",
+  col = 4, lwd = 2, lty = 1, addLegend = FALSE, xlab = "Dose",
   ylab = "Relative viability", ylim = NA, xlim = NA, main,
   type = c("line", "points", "control", "legend", "sem"), style = "",
   bty = "n", h = c(0.5), cex.main = 1, cex.axis = 1, cex.lab = 1,
