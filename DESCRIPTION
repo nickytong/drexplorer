@@ -1,7 +1,7 @@
 Package: drexplorer
 Type: Package
 Title: Dose-response Explorer
-Version: 1.2.1
+Version: 1.2.2
 Date: 2015-02-17
 Author: Pan Tong, Kevin R Coombes
 Maintainer: Pan Tong <ptong1@mdanderson.org>
