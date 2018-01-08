@@ -239,8 +239,8 @@ getPlotDat_nci60 <- function(fit){
 #' @param h horizontal line to add indicating e.g. GI (h=0.5), TGI (h=0), LD50 (h=-0.5)
 #' @param ... additional parameters, not implemented
 #' @export
-plot.nci60Fit <- function(fit, xlab="Log10(Dose)", ylab="Relative growth", main='Fit of NCI60 method', 
-	xlim=NULL, ylim=NULL, cex.main=1, cex.axis=1, pcol='black', lcol='black', h=c(-0.5, 0, 0.5), lwd=2, ...){
+plot.nci60Fit <- function(fit, xlab="Dose", ylab="Relative growth", main='Fit of NCI60 method', 
+	xlim=NULL, ylim=NULL, cex.main=1, cex.axis=1, cex.lab=1, axes=TRUE, pcol='black', pch=1, lcol='black', lty=1, ltyh=1, lwd=2, type=c('line', 'points'), h=c(-0.5, 0, 0.5), ...){
 	#browser()
 	plL <- getPlotDat_nci60(fit)
 	fitDat <- plL$fitDat
@@ -249,23 +249,65 @@ plot.nci60Fit <- function(fit, xlab="Log10(Dose)", ylab="Relative growth", main=
 	y <- plL$y
 	#if(is.null(ylim)) ylim <- range(pretty(fitDat$response))
 	if(is.null(ylim)) ylim <- c(-1, 1)
-	if(any(fitDat$response>1)) ylim[2] <- max(fitDat$response)
+	if(any(fitDat$response>ylim[2])) ylim[2] <- max(fitDat$response)
 	if(is.null(xlim)) xlim <- range(pretty(log10(fitDat$dose)))		
-	with(fitDat, plot(log10(dose), response, 
-		xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim, main=main, cex.main=cex.main, cex.axis=cex.axis))
 	#browser()
 	#xlim1 <- xlim[1]
 	#segments(xlim1, 0.5, fit['GI50'], 0.5, lty=2, col='gray')
 	#segments(xlim1, 0.0, fit['TGI'], 0.0, lty=2, col='gray')
 	#segments(xlim1, -0.5, fit['LC50'], -0.5, lty=2, col='gray')
-	lines(log10(xGrid)[indSel], y[indSel], col=lcol, lwd=lwd)
-
+	# with(fitDat, plot(log10(dose), response, 
+	# 	xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim, main=main, cex.main=cex.main, cex.axis=cex.axis))
+	# lines(log10(xGrid)[indSel], y[indSel], col=lcol, lwd=lwd)
 	#browser()
-	abline(h=h, col='grey')
+	if('points' %in% type){
+	# just plot points
+	# 	plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd,
+    #       xlab=xlab, ylab=ylab, main=main, col=pCols[isTrt], pch=pPchs[isTrt], cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)
+		# NOW IN LOG annotation
+		plot(log10(fitDat$dose), fitDat$response, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd,
+	           xlab=xlab, ylab=ylab, main=main, col=pcol, pch=pch, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, xaxt="n")
+		atx <- axTicks(1)
+		labels <- sapply(atx,function(i) as.expression(bquote(10^ .(i))))
+		axis(1,at=atx,labels=labels)
+		abline(h=h, col='grey', lty=ltyh)
+	} else {
+		# no points; so just the axis, blank plot
+		# plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd, 
+  		#         xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, col=pCols[isTrt], pch=pPchs[isTrt], type='n')
+  		plot(log10(fitDat$dose), fitDat$response, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd,
+	           xlab=xlab, ylab=ylab, main=main, cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab, col=pcol, pch=pch, type='n', xaxt="n")
+		atx <- axTicks(1)
+		labels <- sapply(atx,function(i) as.expression(bquote(10^ .(i))))
+		axis(1,at=atx,labels=labels)
+		abline(h=h, col='grey', lty=ltyh)
+	}
+
+	if('line' %in% type)
+		lines(log10(xGrid)[indSel], y[indSel], col=lcol, lwd=lwd)
+	#browser()
 } 
 #plot.nci60Fit(fit2)
 
-
+#' lines method for nci60Fit class
+#' @method plot nci60Fit
+#' @param x a nci60Fit object as returned by nci60Fit
+#' @param h horizontal line to add indicating e.g. GI (h=0.5), TGI (h=0), LD50 (h=-0.5)
+#' @param ... additional parameters, not implemented
+#' @export
+lines.nci60Fit <- function(fit, 
+	pcol='black', lcol='black', lwd=2, lty=1, pch=16, type=c('line')){
+	plL <- getPlotDat_nci60(fit)
+	fitDat <- plL$fitDat
+	xGrid <- plL$xGrid
+	indSel <- plL$indSel
+	#browser()
+	y <- plL$y
+	if('line' %in% type)	
+		lines(log10(xGrid)[indSel], y[indSel], col=lcol, lwd=lwd, lty=lty)
+	if('points' %in% type)
+		with(fitDat, points(log10(dose), response, col=pcol, pch=pch))
+} 
 
 ###########################
 # optim for Hill

@@ -1033,8 +1033,9 @@ setMethod('plot', signature(x='drFit'),
 	## the actual data points
 	if(is.na(xlim[1])) xlim <- log10(c(bot, top))
 	#browser()
-	# 'plot' %in% type will start a new plot
-	if(!'plot' %in% type){
+	# 'plot' %in% type will start a new plot; otherwise, only 
+	if(!'plot' %in% type ){
+	# just plot points?
 	# 	plot(log10(dose1), trtScaled, ylim=ylim, xlim=xlim, axes=axes, lty=lty, lwd=lwd,
     #       xlab=xlab, ylab=ylab, main=main, col=pCols[isTrt], pch=pPchs[isTrt], cex.main=cex.main, cex.axis=cex.axis, cex.lab=cex.lab)
 		# NOW IN LOG annotation
