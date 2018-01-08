@@ -341,7 +341,17 @@ are more reliable. Since some response values are not achieved in the data, it i
 unavailable in some regions. Thus, this new approach is more conservative compared to the original Chou-Talalay method. 
 
 ## HSA and Bliss Model
-Below we illustrate the application of HSA (Highest Single Agent) model and Bliss independence model.
+Below we illustrate the application of HSA (Highest Single Agent) model and Bliss independence model. Both models first estimate the reference response 
+of combination treatment (assumed to be theoretical additive effect) and
+then compare the observed response to the reference response for combination treatment. We compute the Area Under Curve (AUC) for the observed response and reference 
+response and use their difference deltaAUC (AUC of observed response - AUC of reference response) to quantify the trend of synergism.
+
+In terms of showing the curves of single and combination treatment, we use the projected dose which is $$d_{proj}=\sqrt{d1^2+d2^2}$$
+
+
+Based on the $d_{proj}$ dose of combination treatment, one can infer the corresponding dose of drug 1 (d1) and drug 2 (d2). 
+That is, there is 1-to-1 correspondence among
+the 3 doses. 
 
 ```{r, fig.width=6, fig.height=6, message=FALSE, warning=FALSE}
 fit_hsa_bliss <- fitHSA_ray(d1=UMSCC22B$dose1, d2=UMSCC22B$dose2, 
@@ -357,7 +367,7 @@ plotHSA_ray(fit_hsa_bliss, type=c('line', 'Bliss', 'se'), main=sprintf('Delta AU
 ```
 
 Similarly, the purple line in the above figure shows the estimates of additive effect from Bliss model. Since the combination kills less than the additive effect, it suggests
-an trend towards antagonistic effect, quantified by delta AUC of 0.06, which is defined as the AUC of combination subtracted the AUC of additive effect.
+an trend towards antagonistic effect, quantified by delta AUC of 0.06.
 
 Notice that different definition of the baseline model for additive effect leads to different result for drug interactions. Usually, HSA model is a less stringent criteria compared to Bliss model. 
 
