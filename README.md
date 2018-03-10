@@ -49,8 +49,6 @@ vignette('drexplorer')
 ## Cite Us
 The **drexplorer** package has been published in Bioinformatics which can be cited as:
 
-Tong, Pan, Kevin R. Coombes, Faye M. Johnson, Lauren A. Byers, Lixia Diao, Diane D. Liu, J. Jack Lee, John V. Heymach, and Jing Wang. "drexplorer: A tool to explore dose–response relationships and drug–drug interactions." Bioinformatics (2015): btv028.
+Tong, Pan, Kevin R. Coombes, Faye M. Johnson, Lauren A. Byers, Lixia Diao, Diane D. Liu, J. Jack Lee, John V. Heymach, and Jing Wang. "drexplorer: A tool to explore dose–response relationships and drug–drug interactions." Bioinformatics (2015): btv028. url: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4426846/
 
-## Build Status
-[Travis
-CI](https://github.com/craigcitro/r-travis) is used to check and build the latest version of **drexplorer**, similar to what CRAN does. The current status icon can be found under the title of this page.  
+
