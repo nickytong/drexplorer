@@ -15,6 +15,11 @@ The **drexplorer** R package is developed to facilitate the analysis of dose-res
 * implement Hill equation (Estimation of EC50, Emax, Einf, E0 and Hill slope) <img src="https://raw.githubusercontent.com/nickytong/drexplorer/master/inst/doc/new.jpg" align="center" height="30" width="40"/>
 * Calculate AUC (Area Under Curve) for all models <img src="https://raw.githubusercontent.com/nickytong/drexplorer/master/inst/doc/new.jpg" align="center" height="30" width="40"/>
 
+A figure summary of its functions can be found from our paper:
+
+<img src="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4426846/bin/btv028f1p.jpg" alt="drexplorer examples" width="650" height="450" />
+
+
 ## Installation
 
 The [**devtools** package](http://cran.r-project.org/web/packages/devtools/index.html) is used to install R packages hosted on Github. To install **drexplorer**, type the following commands in the R console:
